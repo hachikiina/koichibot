@@ -6,13 +6,15 @@ using System.Threading.Tasks;
 using Discord.Net;
 using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace koichibot
 {
-    class Program
+    public class Program
     {
-        private DiscordSocketClient Client;
+        public DiscordSocketClient Client;
         private CommandService Commands;
+        private IServiceProvider Services;
 
         static void Main(string[] args)
         => new Program().MainAsync().GetAwaiter().GetResult();
@@ -31,7 +33,12 @@ namespace koichibot
                 LogLevel = Discord.LogSeverity.Debug,
             });
 
-            Client.MessageReceived += Client_MessageReceived;
+            Services = new ServiceCollection()
+                .AddSingleton(Client)
+                .AddSingleton(Commands)
+                .BuildServiceProvider();
+
+            Client.MessageReceived += HandleCommandAsync;
             await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), null);
 
             Client.Ready += Client_Ready;
@@ -49,19 +56,49 @@ namespace koichibot
             await Task.Delay(-1);
         }
 
+        private async Task HandleCommandAsync(SocketMessage arg)
+        {
+            var msg = arg as SocketUserMessage;
+
+            if (msg is null || msg.Author.IsBot) return;
+
+            int argPos = 0;
+            if (msg.HasStringPrefix("b!", ref argPos) || msg.HasMentionPrefix(Client.CurrentUser, ref argPos))
+            {
+                var context = new SocketCommandContext(Client, msg);
+
+                await Commands.ExecuteAsync(context, argPos, Services);
+            }
+        }
+
         private async Task Client_Log(Discord.LogMessage Message)
         {
-            Console.WriteLine($"[{DateTime.Now} at {Message.Source}] {Message.Message}");
+            await Task.Run(() => Console.WriteLine($"[{DateTime.Now} at {Message.Source}] {Message.Message}"));
         }
 
         private async Task Client_Ready()
         {
-            await Client.SetGameAsync("Bu bir testtir,", null, Discord.ActivityType.Playing);
+            await Client.SetGameAsync("aga demeyin", null, Discord.ActivityType.Playing);
         }
 
-        private async Task Client_MessageReceived(SocketMessage arg)
-        {
-            // komutları ayarla
-        }
+        //private async Task Client_MessageReceived(SocketMessage arg)
+        //{
+        //    // komutları ayarla
+        //    if (!arg.Author.IsBot && (arg.ToString().ToLower().Contains("aga") || arg.ToString().ToLower().Contains("aqa") || arg.ToString().ToLower().Contains("a q a") || arg.ToString().ToLower().Contains("a g a")))
+        //    {
+        //        await arg.Channel.SendMessageAsync($"lan { arg.Author.Mention }, kerhane mi burası");
+        //    }
+        //    else if (!arg.Author.IsBot && (arg.ToString().ToLower().Equals("rin") || arg.ToString().ToLower().Contains("rin ") || arg.ToString().ToLower().Contains("rini") || arg.ToString().ToLower().Contains("rin tohsaka") || arg.ToString().ToLower().Contains("rine") || arg.ToString().ToLower().Contains("rinde")))
+        //    {
+        //        await arg.Channel.SendMessageAsync("rin demeyin ahmet summonlanıyo");
+        //    }
+        //    //else if (arg.ToString().Contains("b!setgame "))
+        //    //{
+        //    //    var msg = arg.ToString();
+        //    //    var bruhStr = msg.Split(msg, 10);
+        //    //    string gameStr = bruhStr[2];
+        //    //    await Client.SetGameAsync(gameStr, null, Discord.ActivityType.Playing);
+        //    //}
+        //}
     }
 }
