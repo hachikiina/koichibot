@@ -7,10 +7,11 @@ using Discord.Net;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
+using Discord;
 
 namespace koichibot
 {
-    public class Program
+    public class Program : ModuleBase<SocketCommandContext>
     {
         public DiscordSocketClient Client;
         private CommandService Commands;
@@ -59,8 +60,17 @@ namespace koichibot
         private async Task HandleCommandAsync(SocketMessage arg)
         {
             var msg = arg as SocketUserMessage;
+            string compare = msg.ToString().ToLower();
 
             if (msg is null || msg.Author.IsBot) return;
+
+            if (compare.Contains("aga") || compare.Contains("aqa") || compare.Contains("a g a") || compare.Contains("a q a"))
+            {
+                //Emoji[] aga = { new Emoji("🅰️"), new Emoji("🇬"), new Emoji("🇦") };
+                //IEmote[] baga = new IEmote[] { new Emoji("🅰️"), new Emoji("🇬"), new Emoji("🇦") };
+
+                await msg.Author.SendMessageAsync("aga deme lan");
+            }
 
             int argPos = 0;
             if (msg.HasStringPrefix("b!", ref argPos) || msg.HasMentionPrefix(Client.CurrentUser, ref argPos))
