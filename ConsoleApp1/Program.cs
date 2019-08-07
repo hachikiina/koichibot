@@ -1,13 +1,11 @@
-﻿using System;
-using System.IO;
-using System.Reflection;
-using System.Threading.Tasks;
-//discord stuff
-using Discord.Net;
+﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
-using Discord;
+using System;
+using System.IO;
+using System.Reflection;
+using System.Threading.Tasks;
 
 namespace koichibot
 {
@@ -64,13 +62,13 @@ namespace koichibot
 
             if (msg is null || msg.Author.IsBot) return;
 
-            if (compare.Contains("aga") || compare.Contains("aqa") || compare.Contains("a g a") || compare.Contains("a q a"))
-            {
-                //Emoji[] aga = { new Emoji("🅰️"), new Emoji("🇬"), new Emoji("🇦") };
-                //IEmote[] baga = new IEmote[] { new Emoji("🅰️"), new Emoji("🇬"), new Emoji("🇦") };
+            //if (compare.Contains("aga") || compare.Contains("aqa") || compare.Contains("a g a") || compare.Contains("a q a"))
+            //{
+            //    //Emoji[] aga = { new Emoji("🅰️"), new Emoji("🇬"), new Emoji("🇦") };
+            //    //IEmote[] baga = new IEmote[] { new Emoji("🅰️"), new Emoji("🇬"), new Emoji("🇦") };
 
-                await msg.Author.SendMessageAsync("aga deme lan");
-            }
+            //    await msg.Author.SendMessageAsync("aga deme lan");
+            //}
 
             int argPos = 0;
             if (msg.HasStringPrefix("b!", ref argPos) || msg.HasMentionPrefix(Client.CurrentUser, ref argPos))
@@ -81,7 +79,7 @@ namespace koichibot
             }
         }
 
-        private async Task Client_Log(Discord.LogMessage Message)
+        private async Task Client_Log(LogMessage Message)
         {
             await Task.Run(() => Console.WriteLine($"[{DateTime.Now} at {Message.Source}] {Message.Message}"));
         }
@@ -90,25 +88,5 @@ namespace koichibot
         {
             await Client.SetGameAsync("aga demeyin", null, Discord.ActivityType.Playing);
         }
-
-        //private async Task Client_MessageReceived(SocketMessage arg)
-        //{
-        //    // komutları ayarla
-        //    if (!arg.Author.IsBot && (arg.ToString().ToLower().Contains("aga") || arg.ToString().ToLower().Contains("aqa") || arg.ToString().ToLower().Contains("a q a") || arg.ToString().ToLower().Contains("a g a")))
-        //    {
-        //        await arg.Channel.SendMessageAsync($"lan { arg.Author.Mention }, kerhane mi burası");
-        //    }
-        //    else if (!arg.Author.IsBot && (arg.ToString().ToLower().Equals("rin") || arg.ToString().ToLower().Contains("rin ") || arg.ToString().ToLower().Contains("rini") || arg.ToString().ToLower().Contains("rin tohsaka") || arg.ToString().ToLower().Contains("rine") || arg.ToString().ToLower().Contains("rinde")))
-        //    {
-        //        await arg.Channel.SendMessageAsync("rin demeyin ahmet summonlanıyo");
-        //    }
-        //    //else if (arg.ToString().Contains("b!setgame "))
-        //    //{
-        //    //    var msg = arg.ToString();
-        //    //    var bruhStr = msg.Split(msg, 10);
-        //    //    string gameStr = bruhStr[2];
-        //    //    await Client.SetGameAsync(gameStr, null, Discord.ActivityType.Playing);
-        //    //}
-        //}
     }
 }
