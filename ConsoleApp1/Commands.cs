@@ -164,23 +164,84 @@ namespace koichibot
             IJikan jikan = new Jikan(true);
 
             AnimeSearchResult animeSearchResult = await jikan.SearchAnime(final);
+            Anime anime = jikan.GetAnime(animeSearchResult.Results.First().MalId).Result;
 
-            //string lol = "";
-            //foreach (var item in animeSearchResult.Results)
-            //{
-            //    if (item.Title.ToLower().Contains(final.ToLower()))
-            //        lol = lol + " \n" + item.Title;
-            //}
-            //await ReplyAsync(lol);
+            await ReplyAsync(animeSearchResult.Results.First().MalId.ToString() + " " + anime.MalId); //debug purposes
+
+            string bruh;
+            string brah;
+            if (animeSearchResult.Results.First().Airing)
+            {
+                bruh = "Airing";
+                brah = animeSearchResult.Results.First().StartDate.ToString().Remove(10, 9) + " - Still Airing";
+            }
+            else
+            {
+                bruh = "Finished";
+                brah = animeSearchResult.Results.First().StartDate.ToString().Remove(10, 9) + 
+                    " - " + animeSearchResult.Results.First().EndDate.ToString().Remove(10, 9);
+            }
 
             EmbedBuilder embedBuilder = new EmbedBuilder();
 
-            embedBuilder.WithTitle($"{ animeSearchResult.Results.First().Title }")
-                .WithThumbnailUrl(animeSearchResult.Results.First().ImageURL)
-                .WithDescription(animeSearchResult.Results.First().Description)
-                .AddField("Status", animeSearchResult.Results.First().Airing)
-                .AddField("Type", animeSearchResult.Results.First().Type)
-                .WithColor(Color.DarkGreen);
+
+            try
+            {
+                embedBuilder.WithTitle(anime.Title)
+                    .WithThumbnailUrl(anime.ImageURL)
+                    .WithDescription(anime.Synopsis)
+                    .WithColor(Color.DarkGreen)
+                    .AddField("Status", bruh, true)
+                    .AddField("Type", anime.Type, true)
+                    .AddField("Aired", brah, true)
+                    .AddField("Rank", anime.Rank, true);
+            }
+            catch (System.Exception ex)
+            {
+                await ReplyAsync(ex.Message);
+            }
+            
+
+            await ReplyAsync("", false, embedBuilder.Build());
+        }
+
+        [Command("manga")]
+        public async Task MangaSearch([Optional] params string[] message)
+        {
+            string final = "";
+            foreach (var item in message)
+                final = final + " " + item.ToString();
+
+            final = final.Remove(0, 1);
+
+            IJikan jikan = new Jikan(true);
+
+            MangaSearchResult mangaSearchResult = await jikan.SearchManga(final);
+            Manga manga = jikan.GetManga(mangaSearchResult.Results.First().MalId).Result;
+
+            string bruh;
+            string brah;
+            if (mangaSearchResult.Results.First().Publishing)
+            {
+                bruh = "Publishing";
+                brah = mangaSearchResult.Results.First().StartDate.ToString().Remove(10, 9) + " - Still running";
+            }
+            else
+            {
+                bruh = "Finished";
+                brah = $"{ mangaSearchResult.Results.First().StartDate.ToString().Remove(10, 9) } - { mangaSearchResult.Results.First().EndDate.ToString().Remove(10, 9) }";
+            }
+
+            EmbedBuilder embedBuilder = new EmbedBuilder();
+
+            embedBuilder.WithTitle(manga.Title)
+                .WithDescription(manga.Synopsis)
+                .WithColor(Color.LightOrange)
+                .WithThumbnailUrl(manga.ImageURL)
+                .AddField("Status", bruh, true)
+                .AddField("Type", manga.Type, true)
+                .AddField("Published", brah, true)
+                .AddField("Rank", manga.Rank, true);
 
             await ReplyAsync("", false, embedBuilder.Build());
         }
