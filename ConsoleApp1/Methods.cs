@@ -59,5 +59,28 @@ namespace koichibot
                 return null;
             }
         }
+
+        public async Task<string> GetAhegaoFromEg()
+        {
+            string json = new WebClient().DownloadString("https://raw.githubusercontent.com/egecelikci/ahegao/master/data.json");
+            Ahg ahegao = JsonConvert.DeserializeObject<Ahg>(json);
+            Random random = new Random();
+            int rndNum = random.Next(0, ahegao.Ahegao.Length);
+            return ahegao.Ahegao[rndNum];
+        }
+    }
+
+    public static class StaticMethods
+    {
+        public static ulong OwnerID = 309758882425733121;
+        public static string ParseText(params string[] message)
+        {
+            string final = "";
+            foreach (var item in message)
+            {
+                final = final + " " + item.ToString();
+            }
+            return final;
+        }
     }
 }

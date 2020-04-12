@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Net;
 using YouTubeSearch;
+using System;
 
 namespace koichibot
 {
@@ -17,7 +18,11 @@ namespace koichibot
         [Command("ping")]
         public async Task PingAsync()
         {
-            await ReplyAsync("Pong!");
+            IUserMessage message = await ReplyAsync("Ping?");
+            await message.ModifyAsync(m => m.Content = "Pong.");
+            await message.ModifyAsync(m => m.Content = $"Pong!\n" +
+            $"Latency is {message.EditedTimestamp.Value.Subtract(message.CreatedAt).Milliseconds} ms.\n" +
+            $"API latency is {Context.Client.Latency} ms.");
         }
 
         [Command("bruh")]
@@ -27,16 +32,16 @@ namespace koichibot
         }
 
         [Command("avatar")]
-        public async Task AvatarAsync([Optional] IGuildUser userName)
+        public async Task AvatarAsync([Optional] IGuildUser username)
         {
-            if (!(userName is null))
+            if (username != null)
             {
-                string avatarUrl = userName.GetAvatarUrl();
+                string avatarUrl = username.GetAvatarUrl();
                 avatarUrl = avatarUrl.Replace("?size=128", "?size=1024");
 
                 EmbedBuilder builder = new EmbedBuilder();
 
-                builder.WithTitle($"{ userName.Username }#{ userName.Discriminator }'s Avatar")
+                builder.WithTitle($"{ username.Username }#{ username.Discriminator }'s Avatar")
                     .WithImageUrl(avatarUrl)
                     .WithColor(Color.DarkPurple);
 
@@ -114,7 +119,6 @@ namespace koichibot
 
                 await ReplyAsync(final);
                 await Context.Message.DeleteAsync();
-                //await Context.Guild.GetTextChannel(617113668550787260).SendMessageAsync($"{ Context.Message.Author.Username }#{ Context.Message.Author.Discriminator }: { Context.Message }");
             }
         }
 
@@ -127,35 +131,20 @@ namespace koichibot
                 return;
             }
 
-            //if (!(channel is IGuildChannel))
-            //{
-            //    await ReplyAsync("Please enter a valid channel.");
-            //    return;
-            //}
+            string final = StaticMethods.ParseText(message);
+            string lol = channel.Id.ToString();
 
-            string final = "";
-            foreach (var item in message)
+            bool success = ulong.TryParse(lol, out ulong finalchannel);
+            if (success)
             {
-                final = final + " " + item.ToString();
+                await Context.Guild.GetTextChannel(finalchannel).SendMessageAsync(final);
             }
-            if (final.Contains("aga") || final.Contains("aqa") || final.Contains("a g a") || final.Contains("a q a"))
-                await ReplyAsync("a kelimesi yazmıyorum pardon");
             else
             {
-                string lol = channel.Id.ToString();
-                bool success = ulong.TryParse(lol, out ulong finalchannel);
-                if (success)
-                {
-                    await Context.Guild.GetTextChannel(finalchannel).SendMessageAsync(final);
-                    await Context.Guild.GetTextChannel(617113668550787260).SendMessageAsync($"{ Context.Message.Author.Username }#{ Context.Message.Author.Discriminator }: { Context.Message }");
-
-                }
-                else
-                {
-                    await ReplyAsync("Please enter a valid channel.");
-                }
-
+                await ReplyAsync("Please enter a valid channel.");
+                return;
             }
+
         }
 
         [Command("anime")]
@@ -168,10 +157,7 @@ namespace koichibot
                     return;
                 }
 
-                string final = "";
-                foreach (var item in message)
-                    final = final + " " + item.ToString();
-
+                string final = StaticMethods.ParseText(message);
                 final = final.Remove(0, 1);
 
                 IJikan jikan = new Jikan(true);
@@ -179,17 +165,17 @@ namespace koichibot
                 AnimeSearchResult animeSearchResult = await jikan.SearchAnime(final);
                 Anime anime = jikan.GetAnime(animeSearchResult.Results.First().MalId).Result;
 
-                string bruh = "";
-                string brah = "";
+                string status = "";
+                string airing = "";
                 if (animeSearchResult.Results.First().Airing)
                 {
-                    bruh = "Airing";
-                    brah = animeSearchResult.Results.First().StartDate.ToString().Remove(animeSearchResult.Results.First().StartDate.ToString().Length - 9, 9) + " - Still Airing";
+                    status = "Airing";
+                    airing = animeSearchResult.Results.First().StartDate.ToString().Remove(animeSearchResult.Results.First().StartDate.ToString().Length - 9, 9) + " - Still Airing";
                 }
                 else
                 {
-                    bruh = "Finished";
-                    brah = animeSearchResult.Results.First().StartDate.ToString().Remove(animeSearchResult.Results.First().StartDate.ToString().Length - 9, 9) +
+                    status = "Finished";
+                    airing = animeSearchResult.Results.First().StartDate.ToString().Remove(animeSearchResult.Results.First().StartDate.ToString().Length - 9, 9) +
                         " - " + animeSearchResult.Results.First().EndDate.ToString().Remove(animeSearchResult.Results.First().EndDate.ToString().Length - 9, 9);
                 }
 
@@ -199,9 +185,9 @@ namespace koichibot
                     .WithThumbnailUrl(anime.ImageURL)
                     .WithDescription(anime.Synopsis)
                     .WithColor(Color.DarkGreen)
-                    .AddField("Status", bruh, true)
+                    .AddField("Status", status, true)
                     .AddField("Type", anime.Type, true)
-                    .AddField("Aired", brah, true)
+                    .AddField("Aired", airing, true)
                     .AddField("Rank", anime.Rank, true);
 
                 await ReplyAsync("", false, embedBuilder.Build());
@@ -253,10 +239,7 @@ namespace koichibot
                     return;
                 }
 
-                string final = "";
-                foreach (var item in message)
-                    final = final + " " + item.ToString();
-
+                string final = StaticMethods.ParseText(message);
                 final = final.Remove(0, 1);
 
                 IJikan jikan = new Jikan(true);
@@ -264,17 +247,17 @@ namespace koichibot
                 MangaSearchResult mangaSearchResult = await jikan.SearchManga(final);
                 Manga manga = jikan.GetManga(mangaSearchResult.Results.First().MalId).Result;
 
-                string bruh;
-                string brah;
+                string status;
+                string publishing;
                 if (mangaSearchResult.Results.First().Publishing)
                 {
-                    bruh = "Publishing";
-                    brah = mangaSearchResult.Results.First().StartDate.ToString().Remove(mangaSearchResult.Results.First().StartDate.ToString().Length - 9, 9) + " - Still running";
+                    status = "Publishing";
+                    publishing = mangaSearchResult.Results.First().StartDate.ToString().Remove(mangaSearchResult.Results.First().StartDate.ToString().Length - 9, 9) + " - Still running";
                 }
                 else
                 {
-                    bruh = "Finished";
-                    brah = $"{ mangaSearchResult.Results.First().StartDate.ToString().Remove(mangaSearchResult.Results.First().StartDate.ToString().Length - 9, 9) } - " +
+                    status = "Finished";
+                    publishing = $"{ mangaSearchResult.Results.First().StartDate.ToString().Remove(mangaSearchResult.Results.First().StartDate.ToString().Length - 9, 9) } - " +
                         $"{ mangaSearchResult.Results.First().EndDate.ToString().Remove(mangaSearchResult.Results.First().EndDate.ToString().Length - 9, 9) }";
                 }
 
@@ -284,9 +267,9 @@ namespace koichibot
                     .WithDescription(manga.Synopsis)
                     .WithColor(Color.LightOrange)
                     .WithThumbnailUrl(manga.ImageURL)
-                    .AddField("Status", bruh, true)
+                    .AddField("Status", status, true)
                     .AddField("Type", manga.Type, true)
-                    .AddField("Published", brah, true)
+                    .AddField("Published", publishing, true)
                     .AddField("Rank", manga.Rank, true);
 
                 await ReplyAsync("", false, embedBuilder.Build());
@@ -310,150 +293,11 @@ namespace koichibot
             }
         }
 
-        //[Command ("character")]
-        //public async Task CharacterSearchAsync([Optional] params string[] message)
-        //{
-        //    try
-        //    {
-        //        if (message is null || message.Length == 0)
-        //        {
-        //            return;
-        //        }
-
-        //        string final = "";
-        //        foreach (var item in message)
-        //            final = final + " " + item.ToString();
-
-        //        final = final.Remove(0, 1);
-
-        //        IJikan jikan = new Jikan(true);
-
-        //        CharacterSearchResult characterSearchResult = await jikan.SearchCharacter(final);
-        //        Character character = jikan.GetCharacter(characterSearchResult.Results.First().MalId).Result;
-
-        //        EmbedBuilder builder = new EmbedBuilder();
-
-        //        builder.WithTitle(character.Name)
-        //            .WithDescription(character.About)
-        //            .WithThumbnailUrl(character.ImageURL);
-
-        //        await ReplyAsync("", false, builder.Build());
-
-        //    }
-        //    catch (System.ArgumentOutOfRangeException)
-        //    {
-        //        await ReplyAsync("Böyle bir karakter yok.");
-        //    }
-        //    catch (System.InvalidOperationException)
-        //    {
-        //        await ReplyAsync("botu bozmaya çalışma amk");
-        //    }
-        //    catch (System.Exception ex)
-        //    {
-        //        await ReplyAsync($"Beklenmedik bir hata gerçekleşti <:floshed:605840584376188948>:\n```css" +
-        //            $"\nHata kodu: " +
-        //            $"\n  { ex.GetType()}" +
-        //            $"\n\nHata mesajı: " +
-        //            $"\n    { ex.Message }" +
-        //            $"```");
-
-        //        System.Console.WriteLine($"Error =>\n { ex.ToString() }\n\n stack trace =>\n{ ex.StackTrace }");
-        //    }
-        //}
-
         [Command("x")]
         public async Task DoubtAsync()
         {
             await ReplyAsync("The one, who used `b!x`, surely has some doubts.");
         }
-        #region kardo
-        //[Command("trymanga")]
-        //public async Task Mangatrial([Optional] params string[] message)
-        //{
-        //    try
-        //    {
-        //        if (message is null || message.Length == 0)
-        //        {
-        //            return;
-        //        }
-
-        //        string final = "";
-        //        foreach (var item in message)
-        //            final = final + " " + item.ToString();
-
-        //        final = final.Remove(0, 1);
-
-        //        IJikan jikan = new Jikan(true);
-
-        //        string lol = "The first 5 results are:\n```css\n";
-        //        MangaSearchResult mangaSearchResult = await jikan.SearchManga(final);
-        //        int i = 0;
-        //        foreach (var item in mangaSearchResult.Results)
-        //        {
-        //            lol = lol + $"{ i + 1 } - " + item.Title + "\n";
-        //            if (i == 4)
-        //            {
-        //                lol = lol + "```";
-        //                await ReplyAsync(lol);
-        //                return;
-        //            }
-        //            i++;
-        //        }
-        //        string input;
-        //        bool done = false;
-        //        while (!done)
-        //        {
-        //            //await for the users message about 1-5 and select wiselyyyyyyyyyyyyyyyyyyyyy
-        //        }
-        //        #region bruh
-        //        //Manga manga = jikan.GetManga(mangaSearchResult.Results.First().MalId).Result;
-
-        //        //string bruh;
-        //        //string brah;
-        //        //if (mangaSearchResult.Results.First().Publishing)
-        //        //{
-        //        //    bruh = "Publishing";
-        //        //    brah = mangaSearchResult.Results.First().StartDate.ToString().Remove(10, 9) + " - Still running";
-        //        //}
-        //        //else
-        //        //{
-        //        //    bruh = "Finished";
-        //        //    brah = $"{ mangaSearchResult.Results.First().StartDate.ToString().Remove(10, 9) } - { mangaSearchResult.Results.First().EndDate.ToString().Remove(10, 9) }";
-        //        //}
-
-        //        //EmbedBuilder embedBuilder = new EmbedBuilder();
-
-        //        //embedBuilder.WithTitle(manga.Title)
-        //        //    .WithDescription(manga.Synopsis)
-        //        //    .WithColor(Color.LightOrange)
-        //        //    .WithThumbnailUrl(manga.ImageURL)
-        //        //    .AddField("Status", bruh, true)
-        //        //    .AddField("Type", manga.Type, true)
-        //        //    .AddField("Published", brah, true)
-        //        //    .AddField("Rank", manga.Rank, true);
-
-        //        //await ReplyAsync("", false, embedBuilder.Build());
-        //        #endregion
-        //    }
-        //    catch (System.ArgumentOutOfRangeException)
-        //    {
-        //        await ReplyAsync("Böyle bir manga yok.");
-        //    }
-        //    catch (System.InvalidOperationException)
-        //    {
-        //        await ReplyAsync("botu bozmaya çalışma amk");
-        //    }
-        //    catch (System.Exception ex)
-        //    {
-        //        await ReplyAsync($"Beklenmedik bir hata gerçekleşti <:floshed:605840584376188948>:\n```css" +
-        //            $"\nHata kodu: " +
-        //            $"\n  { ex.GetType()}" +
-        //            $"\n\nHata mesajı: " +
-        //            $"\n    { ex.Message }" +
-        //            $"```");
-        //    }
-        //}
-        #endregion
 
         [RequireUserPermission(GuildPermission.Administrator)]
         [Command("ban")]
@@ -465,11 +309,10 @@ namespace koichibot
                 return;
             }
 
-            string final = "";
+            string final;
             if (reason.Length != 0 || !(reason is null))
             {
-                foreach (var item in reason)
-                    final = final + " " + item.ToString();
+                final = StaticMethods.ParseText(reason);
             }
             else
                 final = "Sebep belirtilmedi.";
@@ -486,9 +329,7 @@ namespace koichibot
                 return;
             }
 
-            string searchQuery = "";
-            foreach (var item in rawQuery)
-                searchQuery = searchQuery + " " + item.ToString();
+            string searchQuery = StaticMethods.ParseText(rawQuery);
 
             VideoSearch videos = new VideoSearch();
             var items = await videos.GetVideos(searchQuery, 1);
@@ -497,10 +338,15 @@ namespace koichibot
             await ReplyAsync(items.First().getUrl());
         }
 
-        [RequireUserPermission(GuildPermission.Administrator)]
         [Command("summon")]
         public async Task Summon([Optional] IGuildUser user)
         {
+            if (Context.User.Id != StaticMethods.OwnerID)
+            {
+                await ReplyAsync("You have to be the owner of the bot to use this command (as of now, at least).");
+                return;
+            }
+
             var userList = Context.Guild.Users;
 
             foreach (var item in userList)
@@ -517,12 +363,11 @@ namespace koichibot
         public async Task AhegaoAsync()
         {
             Methods methods = new Methods();
-            string url = await methods.GetRandomImageFromEg();
 
             EmbedBuilder embed = new EmbedBuilder();
 
             embed.WithTitle("Here's your random ahegao")
-                .WithImageUrl(await methods.GetRandomImageFromEg())
+                .WithImageUrl(await methods.GetAhegaoFromEg())
                 .WithFooter("powered by egecelikci's ahegao stash")
                 .WithColor(Color.DarkerGrey);
 
