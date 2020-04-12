@@ -62,14 +62,6 @@ namespace koichibot
 
             if (msg is null || msg.Author.IsBot) return;
 
-            //if (compare.Contains("aga") || compare.Contains("aqa") || compare.Contains("a g a") || compare.Contains("a q a"))
-            //{
-            //    //Emoji[] aga = { new Emoji("🅰️"), new Emoji("🇬"), new Emoji("🇦") };
-            //    //IEmote[] baga = new IEmote[] { new Emoji("🅰️"), new Emoji("🇬"), new Emoji("🇦") };
-
-            //    await msg.Author.SendMessageAsync("aga deme lan");
-            //}
-
             int argPos = 0;
             if (msg.HasStringPrefix("b!", ref argPos) || msg.HasMentionPrefix(Client.CurrentUser, ref argPos))
             {
@@ -86,7 +78,7 @@ namespace koichibot
 
         private async Task Client_Ready()
         {
-            await Client.SetGameAsync("aga demeyin", null, Discord.ActivityType.Playing);
+            await Client.SetGameAsync("f word izlemeyin", null, Discord.ActivityType.Playing);
         }
     }
 }
