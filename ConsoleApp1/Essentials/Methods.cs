@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Newtonsoft.Json;
+using System;
 using System.Net;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace koichibot
+namespace koichibot.Essentials
 {
     public class Methods
     {
@@ -68,6 +68,17 @@ namespace koichibot
             int rndNum = random.Next(0, ahegao.Ahegao.Length);
             return ahegao.Ahegao[rndNum];
         }
+
+        public async Task<List> GetUrbanQuery(string query)
+        {
+            string json = new WebClient().DownloadString("http://api.urbandictionary.com/v0/define?term=" + query.Replace(" ", "%20"));
+            UrbanDefine response = JsonConvert.DeserializeObject<UrbanDefine>(json);
+            //return response.List.First();
+            if (response.List.Count == 0)
+                throw new ArgumentNullException("query", "Couldn't find the definition");
+
+            return response.List.First();
+        }
     }
 
     public static class StaticMethods
@@ -82,5 +93,55 @@ namespace koichibot
             }
             return final;
         }
+    }
+
+    public class Thighs
+    {
+        [JsonProperty("message")]
+        public string Message { get; set; }
+        [JsonProperty("success")]
+        public bool Success { get; set; }
+    }
+
+    public class Ahg
+    {
+        [JsonProperty("ahegao")]
+        public string[] Ahegao { get; set; }
+    }
+
+    public class UrbanDefine
+    {
+        [JsonProperty("list")]
+        public List<List> List { get; set; }
+    }
+
+    public partial class List
+    {
+        [JsonProperty("defid")]
+        public long Defid { get; set; }
+
+        [JsonProperty("word")]
+        public string Word { get; set; }
+
+        [JsonProperty("author")]
+        public string Author { get; set; }
+
+        [JsonProperty("permalink")]
+        public Uri Permalink { get; set; }
+
+        [JsonProperty("definition")]
+        public string Definition { get; set; }
+
+        [JsonProperty("example")]
+        public string Example { get; set; }
+
+        [JsonProperty("thumbs_up")]
+        public long ThumbsUp { get; set; }
+
+        [JsonProperty("thumbs_down")]
+        public long ThumbsDown { get; set; }
+
+        [JsonProperty("current_vote")]
+        public string CurrentVote { get; set; }
     }
 }
