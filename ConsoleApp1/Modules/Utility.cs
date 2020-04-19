@@ -7,9 +7,9 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using YouTubeSearch;
 
-namespace koichibot.Modules.Utilities
+namespace koichibot.Modules
 {
-    public class UtilityCommands : ModuleBase<SocketCommandContext>
+    public class Utility : ModuleBase<SocketCommandContext>
     {
         [Command("ping")]
         [Summary("Pong!")]
@@ -19,6 +19,7 @@ namespace koichibot.Modules.Utilities
             await message.ModifyAsync(m => m.Content = $"Pong!" +
             $"\nLatency is {message.Timestamp.Subtract(Context.Message.Timestamp).Milliseconds} ms." +
             $"\nAPI Latency is {Context.Client.Latency} ms.");
+            return;
         }
 
         [Command("avatar")]
@@ -37,6 +38,7 @@ namespace koichibot.Modules.Utilities
                     .WithColor(Color.DarkPurple);
 
                 await ReplyAsync("", false, builder.Build());
+                return;
             }
             else
             {
@@ -50,44 +52,66 @@ namespace koichibot.Modules.Utilities
                     .WithColor(Color.DarkPurple);
 
                 await ReplyAsync("", false, builder.Build());
+                return;
             }
         }
 
         [Command("say")]
-        [Summary("Makes to bot say something!")]
+        [Summary("Makes the bot say something.")]
         public async Task SayAsync([Optional] params string[] message)
         {
-            if (message.Length == 0)
-            {
-                await ReplyAsync("Kullanım: `say mesaj`");
-            }
-            else
-            {
-                string final = StaticMethods.ParseText(message);
 
-                await ReplyAsync(final);
+            try
+            {
+                if (message.Length == 0)
+                {
+                    await ReplyAsync("Kullanım: `say mesaj`");
+                    return;
+                }
+                else
+                {
+                    string final = StaticMethods.ParseText(message);
+
+                    await ReplyAsync(final);
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                await StaticMethods.ExceptionHandler(ex, Context.Channel);
+                return;
             }
         }
 
         [Command("sayd")]
-        [Summary("Makes the bot say something! Now deletes your command too!")]
-        public async Task SayDAsync([Optional] params string[] message)
+        [Summary("Makes the bot say something, now deletes your command too!")]
+        public async Task SayDeleteAsync([Optional] params string[] message)
         {
-            if (message.Length == 0)
+            try
             {
-                await ReplyAsync("Usage: `b!sayd <message>`");
-            }
-            else
-            {
-                string final = StaticMethods.ParseText(message);
+                if (message.Length == 0)
+                {
+                    await ReplyAsync("Usage: `b!sayd <message>`");
+                    return;
+                }
+                else
+                {
+                    string final = StaticMethods.ParseText(message);
 
-                await ReplyAsync(final);
-                await Context.Message.DeleteAsync();
+                    await ReplyAsync(final);
+                    await Context.Message.DeleteAsync();
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                await StaticMethods.ExceptionHandler(ex, Context.Channel);
+                return;
             }
         }
 
         [Command("sendmessage")]
-        [Summary("Makes the bot send a message in a specified channel.")]
+        [Summary("Makes the bot send a message in a specified text channel.")]
         public async Task SendingMessageAsync([Optional] IGuildChannel channel, [Optional] params string[] message)
         {
             if (channel is null || message.Length == 0)
@@ -103,6 +127,7 @@ namespace koichibot.Modules.Utilities
             if (success)
             {
                 await Context.Guild.GetTextChannel(finalchannel).SendMessageAsync(final);
+                return;
             }
             else
             {

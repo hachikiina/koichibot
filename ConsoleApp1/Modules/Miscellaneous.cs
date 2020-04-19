@@ -4,15 +4,16 @@ using koichibot.Essentials;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-namespace koichibot.Modules.Miscellaneous
+namespace koichibot.Modules
 {
     public class Miscellaneous : ModuleBase<SocketCommandContext>
     {
         [Command("x")]
-        [Summary("Use it if you're doubting.")]
+        [Summary("Use it if you have doubts about anything.")]
         public async Task DoubtAsync()
         {
             await ReplyAsync("The one, who used `b!x`, surely has some doubts.");
+            return;
         }
 
         [Command("summon")]
@@ -34,6 +35,24 @@ namespace koichibot.Modules.Miscellaneous
                     await ReplyAsync("I summon thou, " + item.Mention);
                     return;
                 }
+            }
+        }
+
+        [Command("setplaying")]
+        [Summary("Sets the playing status, owner only.")]
+        public async Task SetPlayingAsync([Optional] params string[] message)
+        {
+            try
+            {
+                if (Context.User.Id != StaticMethods.OwnerID) return;
+                if (message.Length == 0) return;
+                await Context.Client.SetGameAsync(message.ParseTextExt().Trim(), null, ActivityType.Playing);
+                return;
+            }
+            catch (System.Exception ex)
+            {
+                await StaticMethods.ExceptionHandler(ex, Context.Channel);
+                return; 
             }
         }
     }

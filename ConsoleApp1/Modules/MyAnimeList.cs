@@ -2,13 +2,15 @@
 using Discord.Commands;
 using JikanDotNet;
 using koichibot.Essentials;
+using System;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading.Tasks;
 
-namespace koichibot.Modules.Mal
+namespace koichibot.Modules
 {
-    public class MalCommands : ModuleBase<SocketCommandContext>
+    public class MyAnimeList : ModuleBase<SocketCommandContext>
     {
         [Command("anime")]
         [Summary("Searches up anime from MAL.")]
@@ -18,11 +20,12 @@ namespace koichibot.Modules.Mal
             {
                 if (message is null || message.Length == 0)
                 {
+                    await ReplyAsync("Please enter something to search for.");
                     return;
                 }
 
                 string final = StaticMethods.ParseText(message);
-                final = final.Remove(0, 1);
+                final = final.Trim();
 
                 IJikan jikan = new Jikan(true);
 
@@ -34,13 +37,16 @@ namespace koichibot.Modules.Mal
                 if (animeSearchResult.Results.First().Airing)
                 {
                     status = "Airing";
-                    airing = animeSearchResult.Results.First().StartDate.ToString().Remove(animeSearchResult.Results.First().StartDate.ToString().Length - 9, 9) + " - Still Airing";
+                    airing = animeSearchResult.Results.First().StartDate
+                        .ToString().Remove(animeSearchResult.Results.First().StartDate.ToString().Length - 9, 9) + " - Still Airing";
                 }
                 else
                 {
                     status = "Finished";
-                    airing = animeSearchResult.Results.First().StartDate.ToString().Remove(animeSearchResult.Results.First().StartDate.ToString().Length - 9, 9) +
-                        " - " + animeSearchResult.Results.First().EndDate.ToString().Remove(animeSearchResult.Results.First().EndDate.ToString().Length - 9, 9);
+                    airing = animeSearchResult.Results.First().StartDate
+                        .ToString().Remove(animeSearchResult.Results.First().StartDate.ToString().Length - 9, 9) +
+                        " - " + animeSearchResult.Results.First().EndDate
+                        .ToString().Remove(animeSearchResult.Results.First().EndDate.ToString().Length - 9, 9);
                 }
 
                 EmbedBuilder embedBuilder = new EmbedBuilder();
@@ -55,8 +61,9 @@ namespace koichibot.Modules.Mal
                     .AddField("Rank", anime.Rank, true);
 
                 await ReplyAsync("", false, embedBuilder.Build());
+                return;
             }
-            catch (System.ArgumentOutOfRangeException ex)
+            catch (ArgumentOutOfRangeException ex)
             {
                 //await ReplyAsync("Böyle bir anime yok.");
                 //await ReplyAsync($"Detaylar: \n```css" +
@@ -67,29 +74,24 @@ namespace koichibot.Modules.Mal
                 if (ex.InnerException != null)
                 {
                     await ReplyAsync("Böyle bir anime yok.");
-                    await ReplyAsync($"Detaylar: \n```css" +
-                        $"\nStack trace\t\t:\t\t{ ex.StackTrace } " +
-                        $"\nInner exception\t\t:\t\t{ ex.InnerException }" +
-                        $"```");
+                    return;
+                    
                 }
                 else
                 {
                     await ReplyAsync("Böyle bir anime yok.");
-                    await ReplyAsync($"Detaylar: \n```css" +
-                        $"\nStack trace\t\t:\t\t{ ex.StackTrace } " +
-                        $"```");
+                    return;
                 }
             }
-            catch (System.InvalidOperationException)
+            catch (InvalidOperationException)
             {
                 await ReplyAsync("botu bozmaya çalışma amk");
+                return;
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                await ReplyAsync($"Beklenmedik bir hata gerçekleşti <:floshed:605840584376188948>:\n```css" +
-                    $"\nHata kodu\t:\t{ ex.GetType() }\n" +
-                    $"Hata mesajı\t:\t{ ex.Message }\n" +
-                    $"Stack Trace\t:\t{ ex.StackTrace }```");
+                await StaticMethods.ExceptionHandler(ex, Context.Channel);
+                return;
             }
         }
 
@@ -99,10 +101,7 @@ namespace koichibot.Modules.Mal
         {
             try
             {
-                if (message is null || message.Length == 0)
-                {
-                    return;
-                }
+                if (message is null || message.Length == 0) return;
 
                 string final = StaticMethods.ParseText(message);
                 final = final.Remove(0, 1);
@@ -117,7 +116,8 @@ namespace koichibot.Modules.Mal
                 if (mangaSearchResult.Results.First().Publishing)
                 {
                     status = "Publishing";
-                    publishing = mangaSearchResult.Results.First().StartDate.ToString().Remove(mangaSearchResult.Results.First().StartDate.ToString().Length - 9, 9) + " - Still running";
+                    publishing = mangaSearchResult.Results.First().StartDate
+                        .ToString().Remove(mangaSearchResult.Results.First().StartDate.ToString().Length - 9, 9) + " - Still running";
                 }
                 else
                 {
@@ -138,23 +138,55 @@ namespace koichibot.Modules.Mal
                     .AddField("Rank", manga.Rank, true);
 
                 await ReplyAsync("", false, embedBuilder.Build());
+                return;
             }
-            catch (System.ArgumentOutOfRangeException)
+            catch (ArgumentOutOfRangeException)
             {
                 await ReplyAsync("Böyle bir manga yok.");
+                return;
             }
-            catch (System.InvalidOperationException)
+            catch (InvalidOperationException)
             {
                 await ReplyAsync("botu bozmaya çalışma amk");
+                return;
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                await ReplyAsync($"Beklenmedik bir hata gerçekleşti <:floshed:605840584376188948>:\n```css" +
-                    $"\nHata kodu: " +
-                    $"\n  { ex.GetType()}" +
-                    $"\n\nHata mesajı: " +
-                    $"\n    { ex.Message }" +
-                    $"```");
+                await StaticMethods.ExceptionHandler(ex, Context.Channel);
+                return;
+            }
+        }
+
+        // todo make it promptable
+        [Command("animedev")]
+        [Summary("dev tool")]
+        public async Task AnimeLookupAsync([Optional] params string[] query)
+        {
+            try
+            {
+                StringBuilder strBuilder = new StringBuilder();
+                string final = StaticMethods.ParseText(query);
+
+                IJikan jikan = new Jikan(true);
+
+                AnimeSearchResult animeSearch = await jikan.SearchAnime(query.ParseTextExt());
+                int i = 0;
+                foreach (var item in animeSearch.Results)
+                {
+                    if (i == 10) break;
+                    strBuilder.Append((i + 1).ToString() + " - " + item.Title)
+                        .Append(Environment.NewLine);
+
+                    i++;
+                }
+
+                await ReplyAsync($"```{strBuilder.ToString()}```");
+                return;
+            }
+            catch (Exception ex)
+            {
+                await StaticMethods.ExceptionHandler(ex, Context.Channel);
+                return;
             }
         }
     }

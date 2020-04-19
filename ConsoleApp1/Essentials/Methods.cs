@@ -4,6 +4,9 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
+using Discord;
+using Discord.Commands;
+using Discord.WebSocket;
 
 namespace koichibot.Essentials
 {
@@ -92,6 +95,23 @@ namespace koichibot.Essentials
                 final = final + " " + item.ToString();
             }
             return final;
+        }
+
+        public static string ParseTextExt(this string[] message)
+        {
+            string final = "";
+            foreach (var item in message)
+            {
+                final = final + " " + item.ToString();
+            }
+            return final;
+        }
+
+        public static async Task ExceptionHandler(Exception ex, ISocketMessageChannel channel)
+        {
+            await channel.SendMessageAsync("Something went wrong:");
+            await channel.SendMessageAsync($"```{ex.ToString()}```");
+            return;
         }
     }
 

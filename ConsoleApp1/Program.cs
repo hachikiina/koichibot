@@ -22,14 +22,14 @@ namespace koichibot
         {
             Client = new DiscordSocketClient(new DiscordSocketConfig
             {
-                LogLevel = Discord.LogSeverity.Debug,
+                LogLevel = LogSeverity.Debug,
             });
 
             Commands = new CommandService(new CommandServiceConfig
             {
                 CaseSensitiveCommands = true,
                 DefaultRunMode = RunMode.Async,
-                LogLevel = Discord.LogSeverity.Debug,
+                LogLevel = LogSeverity.Debug,
             });
 
             Services = new ServiceCollection()
@@ -78,7 +78,7 @@ namespace koichibot
 
         private async Task Client_Ready()
         {
-            await Client.SetGameAsync("f word izlemeyin", null, Discord.ActivityType.Playing);
+            await Client.SetGameAsync("b!help | sup?", null, Discord.ActivityType.Playing);
         }
     }
 }

@@ -7,12 +7,12 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using YouTubeSearch;
 
-namespace koichibot.Modules.Fun
+namespace koichibot.Modules
 {
     public class Fun : ModuleBase<SocketCommandContext>
     {
         [Command("yt")]
-        [Summary("Searches YouTube for your query and return a link to the first result.")]
+        [Summary("Searches YouTube for your query and returns a link to the first result.")]
         public async Task GetYtLink([Optional] params string[] rawQuery)
         {
             try
@@ -33,14 +33,13 @@ namespace koichibot.Modules.Fun
             }
             catch (InvalidOperationException ex)
             {
-                await ReplyAsync($"Such video doesn't exist.\n" +
-                    $"{ex.GetType().ToString()}: {ex.Message}");
+                await ReplyAsync($"Such video doesn't exist.");
                 return;
             }
         }
 
         [Command("define")]
-        [Summary("Returns the first result from urban dictionary.")]
+        [Summary("Returns the first result from Urban Dictionary.")]
         public async Task GetDefinitionAsync([Optional] params string[] rawQuery)
         {
             try
@@ -55,11 +54,30 @@ namespace koichibot.Modules.Fun
                 string searchQuery = StaticMethods.ParseText(rawQuery).Remove(0, 1);
                 var response = methods.GetUrbanQuery(searchQuery).Result;
 
+                if (response.Definition.Length > 2000)
+                {
+                    await ReplyAsync("The definitions character count is over the limits of what Discord accepts.\n" +
+                        "Here's a link to the definition: " + $"<{response.Permalink}>");
+                    return;
+                }
+
                 EmbedBuilder embedBuilder = new EmbedBuilder();
                 embedBuilder.WithTitle(response.Word)
-                    .WithDescription(response.Definition)
-                    .AddField("Example", response.Example, false)
-                    .AddField("Rating", response.ThumbsUp + " :thumbsup: / " + response.ThumbsDown + " :thumbsdown:", true)
+                    .WithDescription(response.Definition);
+
+                if (response.Example != "")
+                {
+                    if (response.Example.Length > 1024)
+                    {
+                        embedBuilder.AddField("Example", response.Example.Remove(1018) + "[...]", false);
+                    }
+                    else
+                    {
+                        embedBuilder.AddField("Example", response.Example, false);
+                    }
+                }
+
+                embedBuilder.AddField("Rating", response.ThumbsUp + " :thumbsup: / " + response.ThumbsDown + " :thumbsdown:", true)
                     .AddField("Author", response.Author, true)
                     .WithFooter("Powered by urbandictionary.com")
                     .WithColor(Color.DarkMagenta);
@@ -75,7 +93,7 @@ namespace koichibot.Modules.Fun
             }
             catch (Exception ex)
             {
-                await ReplyAsync("something silly happened:\n" + ex.ToString());
+                await StaticMethods.ExceptionHandler(ex, Context.Channel);
                 return;
             }
         }

@@ -4,7 +4,7 @@ using Discord.WebSocket;
 using koichibot.Essentials;
 using System.Threading.Tasks;
 
-namespace koichibot.Modules.Image
+namespace koichibot.Modules
 {
     public class Image : ModuleBase<SocketCommandContext>
     {
@@ -22,6 +22,7 @@ namespace koichibot.Modules.Image
                 .WithColor(Color.DarkerGrey);
 
             await ReplyAsync("", false, embed.Build());
+            return;
         }
 
         [Command("thighs")]
@@ -44,10 +45,12 @@ namespace koichibot.Modules.Image
                     .WithFooter("Powered by nekobot.xyz");
 
                 await ReplyAsync("", false, embedBuilder.Build());
+                return;
             }
             else
             {
                 await ReplyAsync("failed to get link from nekobot");
+                return;
             }
         }
     }
