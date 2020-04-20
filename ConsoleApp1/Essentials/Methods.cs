@@ -109,6 +109,7 @@ namespace koichibot.Essentials
 
         public static async Task ExceptionHandler(Exception ex, ISocketMessageChannel channel)
         {
+            Console.WriteLine("\n" + ex.ToString() + "\n");
             await channel.SendMessageAsync("Something went wrong:");
             await channel.SendMessageAsync($"```{ex.ToString()}```");
             return;

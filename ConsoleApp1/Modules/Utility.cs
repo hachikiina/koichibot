@@ -2,10 +2,8 @@
 using Discord.Commands;
 using koichibot.Essentials;
 using System;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using YouTubeSearch;
 
 namespace koichibot.Modules
 {

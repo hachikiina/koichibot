@@ -44,10 +44,9 @@ namespace koichibot.Modules
 
                         foreach (var cmd in item.Commands)
                         {
-                            commandsBuilder.Append($"`{cmd.Name}` - " + cmd.Summary)
-                                .Append(Environment.NewLine);
+                            commandsBuilder.Append($"`{cmd.Name}`, ");
                         }
-                        fieldBuilder.WithValue(commandsBuilder.ToString());
+                        fieldBuilder.WithValue(commandsBuilder.ToString().Remove(commandsBuilder.Length - 2));
                         fieldBuilders.Add(fieldBuilder);
                     }
 
@@ -64,7 +63,6 @@ namespace koichibot.Modules
                 }
                 else
                 {
-                    StringBuilder usageSummBuilder = new StringBuilder();
                     EmbedBuilder embedBuilder = new EmbedBuilder();
 
                     string moduleName = query.ParseTextExt().Trim();
@@ -72,21 +70,25 @@ namespace koichibot.Modules
 
                     foreach (var item in _commands.Modules.Where(m => m.Parent is null))
                     {
-                        if (moduleName.ToLower() != item.Name.ToLower()) continue;
+                        if (moduleName.ToLower().Replace("ı", "i") != item.Name.ToLower().Replace("ı", "i")) continue;
                         embedBuilder.WithTitle(item.Name + " Commands");
                         foreach (var cmd in item.Commands)
                         {
                             EmbedFieldBuilder fieldBuilder = new EmbedFieldBuilder();
+                            StringBuilder usageSummBuilder = new StringBuilder();
 
-                            // todo this is still in progress, trying to find a way to spit out its parameter names.
-                            usageSummBuilder.Append(cmd.Summary)
-                                .Append(Environment.NewLine)
-                                .Append("Usage: " + $"b!{cmd.Name} {cmd.Parameters}")
-                                .Append(Environment.NewLine);
+                            usageSummBuilder.Append(cmd.Summary + Environment.NewLine)
+                                .Append("**Usage:** ");
+                            string temp = "";
+                            foreach (var arg in cmd.Parameters)
+                            {
+                                temp = temp + $"<{arg.Name}>" + " ";
+                            }
+                            usageSummBuilder.Append($"`{ (cmd.Name + " " + temp).TrimEnd() }`" + Environment.NewLine);
 
-                            fieldBuilder.WithIsInline(true)
+                            fieldBuilder.WithIsInline(false)
                                 .WithName(cmd.Name)
-                                .WithValue(cmd.Summary);
+                                .WithValue(usageSummBuilder.ToString());
                             fieldBuilders.Add(fieldBuilder);
                         }
                         success = true;
