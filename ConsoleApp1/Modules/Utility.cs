@@ -24,32 +24,50 @@ namespace koichibot.Modules
         [Summary("Gets the specified users avatar.")]
         public async Task AvatarAsync([Optional] IGuildUser username)
         {
-            if (username != null)
+            // still doesn't get to method body if the given arg isn't a user.
+            try
             {
-                string avatarUrl = username.GetAvatarUrl();
-                avatarUrl = avatarUrl.Replace("?size=128", "?size=1024");
+                if (username != null)
+                {
+                    foreach (var user in Context.Guild.Users)
+                    {
+                        if (username == user)
+                        {
+                            string avatarUrl = username.GetAvatarUrl();
+                            avatarUrl = avatarUrl.Replace("?size=128", "?size=1024");
 
-                EmbedBuilder builder = new EmbedBuilder();
+                            EmbedBuilder builder = new EmbedBuilder();
 
-                builder.WithTitle($"{ username.Username }#{ username.Discriminator }'s Avatar")
-                    .WithImageUrl(avatarUrl)
-                    .WithColor(Color.DarkPurple);
+                            builder.WithTitle($"{ username.Username }#{ username.Discriminator }'s Avatar")
+                                .WithImageUrl(avatarUrl)
+                                .WithColor(Color.DarkPurple);
 
-                await ReplyAsync("", false, builder.Build());
-                return;
+                            await ReplyAsync("", false, builder.Build());
+                            return;
+                        }
+                        else continue;
+                    }
+                    await ReplyAsync("Couldn't find the user.");
+                    return;
+                }
+                else
+                {
+                    string avatarUrl = Context.User.GetAvatarUrl();
+                    avatarUrl = avatarUrl.Replace("?size=128", "?size=1024");
+
+                    EmbedBuilder builder = new EmbedBuilder();
+
+                    builder.WithTitle($"{ Context.User.Username }#{ Context.User.Discriminator }'s Avatar")
+                        .WithImageUrl(avatarUrl)
+                        .WithColor(Color.DarkPurple);
+
+                    await ReplyAsync("", false, builder.Build());
+                    return;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                string avatarUrl = Context.User.GetAvatarUrl();
-                avatarUrl = avatarUrl.Replace("?size=128", "?size=1024");
-
-                EmbedBuilder builder = new EmbedBuilder();
-
-                builder.WithTitle($"{ Context.User.Username }#{ Context.User.Discriminator }'s Avatar")
-                    .WithImageUrl(avatarUrl)
-                    .WithColor(Color.DarkPurple);
-
-                await ReplyAsync("", false, builder.Build());
+                await StaticMethods.ExceptionHandler(ex, Context.Channel);
                 return;
             }
         }
@@ -68,7 +86,7 @@ namespace koichibot.Modules
                 }
                 else
                 {
-                    string final = StaticMethods.ParseText(message);
+                    string final = message.ParseText();
 
                     await ReplyAsync(final);
                     return;
@@ -94,7 +112,7 @@ namespace koichibot.Modules
                 }
                 else
                 {
-                    string final = StaticMethods.ParseText(message);
+                    string final = message.ParseText();
 
                     await ReplyAsync(final);
                     await Context.Message.DeleteAsync();
@@ -118,10 +136,10 @@ namespace koichibot.Modules
                 return;
             }
 
-            string final = StaticMethods.ParseText(message);
-            string lol = channel.Id.ToString();
+            string final = message.ParseText();
+            string channelId = channel.Id.ToString();
 
-            bool success = ulong.TryParse(lol, out ulong finalchannel);
+            bool success = ulong.TryParse(channelId, out ulong finalchannel);
             if (success)
             {
                 await Context.Guild.GetTextChannel(finalchannel).SendMessageAsync(final);

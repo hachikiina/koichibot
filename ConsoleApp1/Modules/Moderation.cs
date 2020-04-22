@@ -30,7 +30,7 @@ namespace koichibot.Modules
 
                 string final;
                 if (reason.Length != 0 || reason != null)
-                    final = StaticMethods.ParseText(reason);
+                    final = reason.ParseText();
                 else
                     final = "Sebep belirtilmedi.";
 
@@ -64,7 +64,7 @@ namespace koichibot.Modules
 
                 string final;
                 if (reason.Length != 0 || reason != null)
-                    final = StaticMethods.ParseText(reason);
+                    final = reason.ParseText();
                 else
                     final = "Sebep belirtilmedi.";
 

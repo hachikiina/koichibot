@@ -87,24 +87,14 @@ namespace koichibot.Essentials
     public static class StaticMethods
     {
         public static ulong OwnerID = 309758882425733121;
-        public static string ParseText(params string[] message)
+        public static string ParseText(this string[] message)
         {
             string final = "";
             foreach (var item in message)
             {
                 final = final + " " + item.ToString();
             }
-            return final;
-        }
-
-        public static string ParseTextExt(this string[] message)
-        {
-            string final = "";
-            foreach (var item in message)
-            {
-                final = final + " " + item.ToString();
-            }
-            return final;
+            return final.Trim();
         }
 
         public static async Task ExceptionHandler(Exception ex, ISocketMessageChannel channel)

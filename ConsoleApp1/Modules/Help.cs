@@ -65,7 +65,7 @@ namespace koichibot.Modules
                 {
                     EmbedBuilder embedBuilder = new EmbedBuilder();
 
-                    string moduleName = query.ParseTextExt().Trim();
+                    string moduleName = query.ParseText();
                     bool success = false;
 
                     foreach (var item in _commands.Modules.Where(m => m.Parent is null))

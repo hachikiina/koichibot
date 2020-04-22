@@ -23,7 +23,7 @@ namespace koichibot.Modules
                     return;
                 }
 
-                string searchQuery = StaticMethods.ParseText(rawQuery);
+                string searchQuery = rawQuery.ParseText();
 
                 VideoSearch videos = new VideoSearch();
                 var items = await videos.GetVideos(searchQuery, 1);
@@ -51,7 +51,7 @@ namespace koichibot.Modules
                 }
                 Methods methods = new Methods();
 
-                string searchQuery = StaticMethods.ParseText(rawQuery).Remove(0, 1);
+                string searchQuery = rawQuery.ParseText();
                 var response = methods.GetUrbanQuery(searchQuery).Result;
 
                 if (response.Definition.Length > 2000)
@@ -88,7 +88,7 @@ namespace koichibot.Modules
             catch (AggregateException)
             {
                 // i realize that this catch is pretty sloppy but i can't be bothered really
-                await ReplyAsync($"No definition for `{StaticMethods.ParseText(rawQuery).Remove(0, 1)}` exists.");
+                await ReplyAsync($"No definition for `{rawQuery.ParseText()}` exists.");
                 return;
             }
             catch (Exception ex)

@@ -20,21 +20,31 @@ namespace koichibot.Modules
         [Summary("Summon the person you want!")]
         public async Task SummonAsync([Optional] IGuildUser user)
         {
-            if (Context.User.Id != StaticMethods.OwnerID)
+            try
             {
-                await ReplyAsync("You have to be the owner of the bot to use this command (as of now, at least).");
-                return;
-            }
-
-            var userList = Context.Guild.Users;
-
-            foreach (var item in userList)
-            {
-                if (item == user)
+                if (Context.User.Id != StaticMethods.OwnerID)
                 {
-                    await ReplyAsync("I summon thou, " + item.Mention);
+                    await ReplyAsync("You have to be the owner of the bot to use this command (as of now, at least).");
                     return;
                 }
+
+                var userList = Context.Guild.Users;
+
+                foreach (var item in userList)
+                {
+                    if (item == user)
+                    {
+                        await ReplyAsync("I summon thou, " + item.Mention);
+                        return;
+                    }
+                }
+                await ReplyAsync("Couldn't find the user.");
+                return;
+            }
+            catch (System.Exception ex)
+            {
+                await StaticMethods.ExceptionHandler(ex, Context.Channel);
+                return;
             }
         }
 
@@ -46,7 +56,8 @@ namespace koichibot.Modules
             {
                 if (Context.User.Id != StaticMethods.OwnerID) return;
                 if (message.Length == 0) return;
-                await Context.Client.SetGameAsync(message.ParseTextExt().Trim(), null, ActivityType.Playing);
+                await Context.Client.SetGameAsync(message.ParseText(), null, ActivityType.Playing);
+                await ReplyAsync("Set the playing status to: " + message.ParseText());
                 return;
             }
             catch (System.Exception ex)

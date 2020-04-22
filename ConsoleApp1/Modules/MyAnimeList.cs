@@ -24,8 +24,7 @@ namespace koichibot.Modules
                     return;
                 }
 
-                string final = StaticMethods.ParseText(message);
-                final = final.Trim();
+                string final = message.ParseText();
 
                 IJikan jikan = new Jikan(true);
 
@@ -103,8 +102,7 @@ namespace koichibot.Modules
             {
                 if (message is null || message.Length == 0) return;
 
-                string final = StaticMethods.ParseText(message);
-                final = final.Remove(0, 1);
+                string final = message.ParseText();
 
                 IJikan jikan = new Jikan(true);
 
@@ -165,18 +163,17 @@ namespace koichibot.Modules
             try
             {
                 StringBuilder strBuilder = new StringBuilder();
-                string final = StaticMethods.ParseText(query);
+                string final = query.ParseText();
 
                 IJikan jikan = new Jikan(true);
 
-                AnimeSearchResult animeSearch = await jikan.SearchAnime(query.ParseTextExt());
+                AnimeSearchResult animeSearch = await jikan.SearchAnime(query.ParseText());
                 int i = 0;
                 foreach (var item in animeSearch.Results)
                 {
                     if (i == 10) break;
                     strBuilder.Append((i + 1).ToString() + " - " + item.Title)
                         .Append(Environment.NewLine);
-
                     i++;
                 }
 
