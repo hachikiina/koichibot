@@ -43,7 +43,7 @@ namespace koichibot.Modules
             }
             catch (System.Exception ex)
             {
-                await StaticMethods.ExceptionHandler(ex, Context.Channel);
+                await StaticMethods.ExceptionHandler(ex, Context);
                 return;
             }
         }
@@ -62,8 +62,23 @@ namespace koichibot.Modules
             }
             catch (System.Exception ex)
             {
-                await StaticMethods.ExceptionHandler(ex, Context.Channel);
+                await StaticMethods.ExceptionHandler(ex, Context);
                 return; 
+            }
+        }
+
+        [Command("throw")]
+        [Summary("dev")]
+        public async Task ThrowAsync()
+        {
+            try
+            {
+                throw new System.Exception("shit");
+            }
+            catch (System.Exception ex)
+            {
+                await StaticMethods.ExceptionHandler(ex, Context);
+                return;
             }
         }
     }

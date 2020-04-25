@@ -7,47 +7,13 @@ using System.Linq;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using System.IO;
+using Serilog;
 
 namespace koichibot.Essentials
 {
     public class Methods
     {
-        public async Task<string> GetRandomImageFromEg()
-        {
-            string urlBase = "https://raw.githubusercontent.com/egecelikci/ahegao/master/images/";
-            Random random = new Random();
-            while (true)
-            {
-                int rndNum = random.Next(0, 150);
-                string url = urlBase + $"{rndNum}" + ".jpg";
-                if (UrlExists(url))
-                {
-                    return url;
-                }
-                else
-                {
-                    Console.WriteLine("doesnt exist -> " + url);
-                }
-            }
-        }
-
-        private bool UrlExists(string url)
-        {
-            WebRequest webRequest = HttpWebRequest.Create(url);
-            webRequest.Method = "HEAD";
-            try
-            {
-                using(WebResponse webResponse = webRequest.GetResponse())
-                {
-                    return true;
-                }
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
         public string GetUrlFromNeko()
         {
             string json = new WebClient().DownloadString("https://nekobot.xyz/api/v2/image/thighs");
@@ -97,11 +63,15 @@ namespace koichibot.Essentials
             return final.Trim();
         }
 
-        public static async Task ExceptionHandler(Exception ex, ISocketMessageChannel channel)
+        public static async Task ExceptionHandler(Exception ex, SocketCommandContext context)
         {
-            Console.WriteLine("\n" + ex.ToString() + "\n");
-            await channel.SendMessageAsync("Something went wrong:");
-            await channel.SendMessageAsync($"```{ex.ToString()}```");
+            await context.Channel.SendMessageAsync($"Something went wrong, `{ex.GetType()}`");
+            //await context.Channel.SendMessageAsync($"```{ex.ToString()}```");
+            Log.Error($"Something went wrong at {context.Guild.Name}/{context.Channel.Name}");
+            Log.Error($"Message content: \"{context.Message.Content}\"");
+            Log.Error($"({context.Guild.Id}/{context.Channel.Id}/{context.Message.Id})");
+            Log.Error(ex, "Details: ");
+            Log.Error("----------------------------------------------");
             return;
         }
     }
@@ -154,5 +124,32 @@ namespace koichibot.Essentials
 
         [JsonProperty("current_vote")]
         public string CurrentVote { get; set; }
+    }
+
+    public class ExceptionList
+    {
+        [JsonProperty("type")]
+        public Exception type { get; set; }
+
+        [JsonProperty("data")]
+        public System.Collections.IDictionary Data { get; set; }
+
+        [JsonProperty("innerException")]
+        public Exception InnerException { get; set; }
+
+        [JsonProperty("message")]
+        public string Message { get; set; }
+
+        [JsonProperty("source")]
+        public string Source { get; set; }
+
+        [JsonProperty("stackTrace")]
+        public string StackTrace { get; set; }
+    }
+
+    public class Exceptions
+    {
+        [JsonProperty("exceptionList")]
+        public List<ExceptionList> ExceptionList { get; set; }
     }
 }

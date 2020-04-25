@@ -67,7 +67,7 @@ namespace koichibot.Modules
             }
             catch (Exception ex)
             {
-                await StaticMethods.ExceptionHandler(ex, Context.Channel);
+                await StaticMethods.ExceptionHandler(ex, Context);
                 return;
             }
         }
@@ -94,7 +94,7 @@ namespace koichibot.Modules
             }
             catch (Exception ex)
             {
-                await StaticMethods.ExceptionHandler(ex, Context.Channel);
+                await StaticMethods.ExceptionHandler(ex, Context);
                 return;
             }
         }
@@ -121,7 +121,7 @@ namespace koichibot.Modules
             }
             catch (Exception ex)
             {
-                await StaticMethods.ExceptionHandler(ex, Context.Channel);
+                await StaticMethods.ExceptionHandler(ex, Context);
                 return;
             }
         }

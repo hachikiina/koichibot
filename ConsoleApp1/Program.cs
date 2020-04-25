@@ -1,11 +1,13 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using koichibot.Essentials;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace koichibot
 {
@@ -20,6 +22,17 @@ namespace koichibot
 
         private async Task MainAsync()
         {
+            // logger initializiton
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.Console()
+                .WriteTo.Logger(lc => lc.Filter.ByIncludingOnly(e => e.Level == Serilog.Events.LogEventLevel.Error).WriteTo.File("logs\\error-.txt", rollingInterval: RollingInterval.Day))
+                .WriteTo.File("logs\\latest-.txt", rollingInterval: RollingInterval.Day)
+                .CreateLogger();
+
+            Log.Information("Starting up...");
+            // logger initialization end
+
             Client = new DiscordSocketClient(new DiscordSocketConfig
             {
                 LogLevel = LogSeverity.Debug,
@@ -73,7 +86,7 @@ namespace koichibot
 
         private async Task Client_Log(LogMessage Message)
         {
-            await Task.Run(() => Console.WriteLine($"[{DateTime.Now} at {Message.Source}] {Message.Message}"));
+            Log.Information($"[{Message.Source}] {Message.Message}");
         }
 
         private async Task Client_Ready()
