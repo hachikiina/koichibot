@@ -56,14 +56,49 @@ namespace koichibot
             Client.Ready += Client_Ready;
             Client.Log += Client_Log;
 
-            string Token = "";
-            using (var Stream = new FileStream((Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)).Replace(@"bin\Debug\netcoreapp2.0", @"data\token.txt"), FileMode.Open, FileAccess.Read))
-            using (var ReadToken = new StreamReader(Stream))
+            try
             {
-                Token = ReadToken.ReadToEnd();
+                string token = "";
+                string dirData = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data");
+                if (!Directory.Exists(dirData))
+                {
+                    Directory.CreateDirectory(dirData);
+                }
+                if (!File.Exists(Path.Combine(dirData, "token.txt")))
+                {
+                    File.Create(Path.Combine(dirData, "token.txt"));
+                    Log.Error("There is no token.txt; created one. Please enter a token in it.");
+                    return;
+                }
+
+                try
+                {
+                    using (var stream = new FileStream(Path.Combine(dirData, "token.txt"), FileMode.Open, FileAccess.Read))
+                    using (var readFile = new StreamReader(stream))
+                        token = readFile.ReadToEnd();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Error while reading token:");
+                    return;
+                }
+
+                try
+                {
+                    await Client.LoginAsync(TokenType.Bot, token);
+                    await Client.StartAsync();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Error while initializing bot:");
+                    return;
+                }
             }
-            await Client.LoginAsync(Discord.TokenType.Bot, Token);
-            await Client.StartAsync();
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Unexpected error:");
+                return;
+            }
 
             await Task.Delay(-1);
         }
