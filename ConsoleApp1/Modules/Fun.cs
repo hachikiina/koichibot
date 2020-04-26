@@ -46,7 +46,7 @@ namespace koichibot.Modules
             {
                 if (rawQuery is null || rawQuery.Length == 0)
                 {
-                    await ReplyAsync("Usage: b!define <query>");
+                    await ReplyAsync("Usage: `b!define <query>`");
                     return;
                 }
                 Methods methods = new Methods();
@@ -63,6 +63,7 @@ namespace koichibot.Modules
 
                 EmbedBuilder embedBuilder = new EmbedBuilder();
                 embedBuilder.WithTitle(response.Word)
+                    .WithUrl(response.Permalink.AbsoluteUri)
                     .WithDescription(response.Definition);
 
                 if (response.Example != "")

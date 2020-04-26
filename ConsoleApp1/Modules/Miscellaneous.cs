@@ -66,20 +66,5 @@ namespace koichibot.Modules
                 return; 
             }
         }
-
-        [Command("throw")]
-        [Summary("dev")]
-        public async Task ThrowAsync()
-        {
-            try
-            {
-                throw new System.Exception("shit");
-            }
-            catch (System.Exception ex)
-            {
-                await StaticMethods.ExceptionHandler(ex, Context);
-                return;
-            }
-        }
     }
 }

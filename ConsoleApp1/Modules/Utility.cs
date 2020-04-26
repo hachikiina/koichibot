@@ -1,8 +1,12 @@
 ﻿using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using koichibot.Essentials;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace koichibot.Modules
@@ -151,6 +155,87 @@ namespace koichibot.Modules
                 return;
             }
 
+        }
+
+        // this command is very much WIP => should also be able to accept message id's
+        [Command("quote")]
+        [Summary("Quotes the message within the given link, must be a Discord message link.")]
+        public async Task QuoteAsync([Optional] params string[] messageUrl)
+        {
+            if (messageUrl.Length == 0)
+            {
+                await ReplyAsync("Usage: `b!quote <messageUrl>`");
+                return;
+            }
+            try
+            {
+                string opString = messageUrl.ParseText();
+                if (!opString.ToLower().Contains("https://discordapp.com/channels/"))
+                {
+                    await ReplyAsync("Please provide a valid url.");
+                    return;
+                }
+
+                opString = opString.ToLower().Substring(opString.Length - 56);
+                string[] ids = opString.Split('/');
+                if (!ulong.TryParse(ids[0], out ulong guildID) || !ulong.TryParse(ids[1], out ulong channelID))
+                {
+                    await ReplyAsync("Please provide a valid url.\nCheck the link again.");
+                    return;
+                }
+
+                IMessage message;
+                if (Context.Guild.Id == guildID && Context.Channel.Id == channelID)
+                {
+                    try
+                    {
+                        message = await Context.Channel.GetMessageAsync(ulong.Parse(ids[2]));
+
+                        EmbedBuilder embedBuilder = new EmbedBuilder();
+                        embedBuilder.WithAuthor(message.Author)
+                            .WithDescription(message.Content)
+                            .AddField("Quoted by", $"{Context.Message.Author.Mention} from " +
+                            $"[{Context.Guild.GetChannel(ulong.Parse(ids[1])).Name}]" +
+                            $"(https://discordapp.com/channels/{Context.Guild.Id.ToString()}/{Context.Guild.GetChannel(ulong.Parse(ids[1])).Id.ToString()})")
+                            .WithCurrentTimestamp();
+                        if ((Context.User as SocketGuildUser).Roles.Count == 0)
+                        {
+                            embedBuilder.WithColor(Color.LightOrange);
+                        }
+                        else
+                        {
+                            foreach (var role in (Context.User as SocketGuildUser).Roles)
+                            {
+                                //Console.WriteLine(role.Color.ToString() + "\n" + role.Color.RawValue + "\n");
+                                if (role.Color.RawValue != 0)
+                                    embedBuilder.WithColor(role.Color);
+                            }
+                        }
+
+                        if (message.Attachments.Count > 0)
+                            embedBuilder.WithImageUrl(message.Attachments.First().ProxyUrl);
+
+                        await ReplyAsync("", false, embedBuilder.Build());
+
+                        return;
+                    }
+                    catch (NullReferenceException)
+                    {
+                        await ReplyAsync("Couldn't find the message in guild. Are you sure you're entering the link correctly?");
+                        return;
+                    }
+                }
+                else
+                {
+                    await ReplyAsync("This url is either not referencing a message in this server or is invalid.");
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                await StaticMethods.ExceptionHandler(ex, Context);
+                return;
+            }
         }
     }
 }
