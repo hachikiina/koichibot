@@ -237,5 +237,69 @@ namespace koichibot.Modules
                 return;
             }
         }
+
+        [Command("server")]
+        [Alias("serverinfo")]
+        [Summary("Displays server related information.")]
+        public async Task ServerInfoAsync([Optional] params string[] query)
+        {
+            try
+            {
+                EmbedBuilder embedBuilder = new EmbedBuilder();
+                // role builder
+                if (query.ParseText() == "roles")
+                {
+                    StringBuilder rolesBuilder = new StringBuilder();
+                    StringBuilder tempBuilder = new StringBuilder();
+                    int i = 0;
+                    foreach (var role in Context.Guild.Roles)
+                    {
+                        if (i == Context.Guild.Roles.Count - 1)
+                            tempBuilder.Append(role.Name);
+                        else
+                            tempBuilder.Append(role.Name + ", ");
+
+                        // will probably throw a exception if the length is over 1024, too lazy to fix though
+                        if (tempBuilder.Length >= 1024)
+                        {
+                            rolesBuilder = rolesBuilder.Remove(rolesBuilder.Length - 2, rolesBuilder.Length);
+                            break;
+                        }
+
+                        rolesBuilder = tempBuilder;
+                        i++;
+                    }
+                    embedBuilder.WithTitle($"Roles [{Context.Guild.Roles.Count}]")
+                        .WithDescription(rolesBuilder.ToString())
+                        .WithColor(Color.DarkTeal);
+
+                    await ReplyAsync("", false, embedBuilder.Build());
+                }
+                else
+                {
+                    embedBuilder.WithAuthor(Context.Guild.Name, Context.Guild.IconUrl)
+                            .WithThumbnailUrl(Context.Guild.IconUrl)
+                            .AddField("ID", Context.Guild.Id, true)
+                            .AddField("Region", Context.Guild.VoiceRegionId, true)
+                            .AddField("Member count", Context.Guild.MemberCount, true)
+                            .AddField("Channels", $"{Context.Guild.TextChannels.Count} Text / {Context.Guild.VoiceChannels.Count} Voice", true)
+                            .AddField("Owner", Context.Guild.Owner.ToString() + $"\n[{Context.Guild.Owner.Id}]", true);
+
+
+                    embedBuilder.AddField("Roles", "To see the prompt with list of roles, please run `b!server roles`", false);
+
+                    embedBuilder.WithFooter("Created at: " + Context.Guild.CreatedAt.UtcDateTime.ToString())
+                        .WithColor(Color.DarkTeal);
+
+                    await ReplyAsync("", false, embedBuilder.Build());
+                    return; 
+                }
+            }
+            catch (Exception ex)
+            {
+                await StaticMethods.ExceptionHandler(ex, Context);
+                return;
+            }
+        }
     }
 }

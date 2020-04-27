@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using YouTubeSearch;
+using Serilog;
 
 namespace koichibot.Modules
 {
@@ -34,6 +35,7 @@ namespace koichibot.Modules
             catch (InvalidOperationException ex)
             {
                 await ReplyAsync($"Such video doesn't exist.");
+                Serilog.Log.Error(ex, "Issue while getting a video:");
                 return;
             }
         }
@@ -97,6 +99,20 @@ namespace koichibot.Modules
                 await StaticMethods.ExceptionHandler(ex, Context);
                 return;
             }
+        }
+
+        [Command("flipcoin")]
+        [Summary("Flips a coin for you.")]
+        public async Task FlipCoinAsync()
+        {
+            Random random = new Random();
+            int result = random.Next(0, 100);
+            if (result > 50)
+                await ReplyAsync("Tails!");
+            else
+                await ReplyAsync("Heads!");
+
+            return;
         }
     }
 }
