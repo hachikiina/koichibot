@@ -190,6 +190,7 @@ namespace koichibot.Modules
                     try
                     {
                         message = await Context.Channel.GetMessageAsync(ulong.Parse(ids[2]));
+                        Methods methods = new Methods();
 
                         EmbedBuilder embedBuilder = new EmbedBuilder();
                         embedBuilder.WithAuthor(message.Author)
@@ -197,20 +198,8 @@ namespace koichibot.Modules
                             .AddField("Quoted by", $"{Context.Message.Author.Mention} from " +
                             $"[{Context.Guild.GetChannel(ulong.Parse(ids[1])).Name}]" +
                             $"(https://discordapp.com/channels/{Context.Guild.Id.ToString()}/{Context.Guild.GetChannel(ulong.Parse(ids[1])).Id.ToString()})")
-                            .WithCurrentTimestamp();
-                        if ((Context.User as SocketGuildUser).Roles.Count == 0)
-                        {
-                            embedBuilder.WithColor(Color.LightOrange);
-                        }
-                        else
-                        {
-                            foreach (var role in (Context.User as SocketGuildUser).Roles)
-                            {
-                                //Console.WriteLine(role.Color.ToString() + "\n" + role.Color.RawValue + "\n");
-                                if (role.Color.RawValue != 0)
-                                    embedBuilder.WithColor(role.Color);
-                            }
-                        }
+                            .WithCurrentTimestamp()
+                            .WithColor(await methods.GetGuildUserRoleColor(Context.User as SocketGuildUser));
 
                         if (message.Attachments.Count > 0)
                             embedBuilder.WithImageUrl(message.Attachments.First().ProxyUrl);
@@ -293,6 +282,76 @@ namespace koichibot.Modules
 
                     await ReplyAsync("", false, embedBuilder.Build());
                     return; 
+                }
+            }
+            catch (Exception ex)
+            {
+                await StaticMethods.ExceptionHandler(ex, Context);
+                return;
+            }
+        }
+
+
+        // find a way to actually display an error if no match
+        [Command("userinfo")]
+        [Summary("Displays user related information.")]
+        public async Task UserInfoAsync([Optional] IGuildUser guildUser, [Optional] params string[] ignore)
+        {
+            try
+            {
+                if (guildUser is null /*|| guildUser.Length == 0*/)
+                {
+                    EmbedBuilder embedBuilder = new EmbedBuilder();
+                    Methods methods = new Methods();
+                    var user = Context.User as SocketGuildUser;
+
+                    embedBuilder.WithAuthor(Context.User)
+                        .WithThumbnailUrl(user.GetAvatarUrl())
+                        .AddField("ID", user.Id, true)
+                        .AddField("Mention", user.Mention, true)
+                        .AddField("Joined at", user.JoinedAt.Value.UtcDateTime, false)
+                        .AddField("Created at", user.CreatedAt.UtcDateTime, false)
+                        .AddField($"Roles [{user.Roles.Count}]", await methods.GetGuildUserRoles(user), false)
+                        .WithColor(await methods.GetGuildUserRoleColor(user));
+
+                    await ReplyAsync("", false, embedBuilder.Build());
+                    return;
+                }
+                else
+                {
+                    //var queriedUser = guildUser as SocketGuildUser;
+                    //var lastUser = Context.Guild.Users.Last();
+                    //foreach (var user in Context.Guild.Users)
+                    //{
+                    //    if (user == guildUser)
+                    //        break;
+                    //    if (user == lastUser && user != guildUser)
+                    //    {
+                    //        await ReplyAsync("Couldn't find a matching user.");
+                    //        return;
+                    //    }
+                    //}
+
+                    //if (Context.Guild.IsGuildUser(guildUser.ParseText()))
+                    //{
+                    //    await ReplyAsync("Couldn't find a matching user.");
+                    //    return;
+                    //}
+                    var queriedUser = guildUser;
+                    Methods methods = new Methods();
+                    EmbedBuilder embedBuilder = new EmbedBuilder();
+
+                    embedBuilder.WithAuthor(queriedUser as SocketUser)
+                        .WithThumbnailUrl(queriedUser.GetAvatarUrl())
+                        .AddField("ID", queriedUser.Id, true)
+                        .AddField("Mention", queriedUser.Mention, true)
+                        .AddField("Joined at", queriedUser.JoinedAt.Value.UtcDateTime, false)
+                        .AddField("Created at", queriedUser.CreatedAt.UtcDateTime, false)
+                        .AddField($"Roles [{(queriedUser as SocketGuildUser).Roles.Count}]", await methods.GetGuildUserRoles(queriedUser as SocketGuildUser), false)
+                        .WithColor(await methods.GetGuildUserRoleColor(queriedUser as SocketGuildUser));
+
+                    await ReplyAsync("", false, embedBuilder.Build());
+                    return;
                 }
             }
             catch (Exception ex)

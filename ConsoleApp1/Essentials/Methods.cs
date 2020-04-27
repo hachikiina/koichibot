@@ -9,6 +9,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using System.IO;
 using Serilog;
+using System.Text;
 
 namespace koichibot.Essentials
 {
@@ -48,6 +49,57 @@ namespace koichibot.Essentials
 
             return response.List.First();
         }
+
+        /// <summary>
+        /// Gets the first colored role user has. If there are none, returns Color.Default
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public async Task<Color> GetGuildUserRoleColor(SocketGuildUser user)
+        {
+            if (user.Roles.Count == 0)
+            {
+                return Color.Default;
+            }
+            else
+            {
+                foreach (var role in user.Roles)
+                {
+                    //Console.WriteLine(role.Color.ToString() + "\n" + role.Color.RawValue + "\n");
+                    if (role.Color.RawValue != 0)
+                        return role.Color;
+                }
+                return Color.Default;
+            }
+            throw new InvalidOperationException("No roles match the statements.");
+        }
+
+        /// <summary>
+        /// Gets a guild user's roles and puts lists them as a string.
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public async Task<string> GetGuildUserRoles(SocketGuildUser user)
+        {
+            StringBuilder rolesBuilder = new StringBuilder();
+            StringBuilder tempBuilder = new StringBuilder();
+            int i = 0;
+
+            foreach (var role in user.Roles)
+            {
+                if (i == user.Roles.Count - 1)
+                    tempBuilder.Append(role.Name);
+                else
+                    tempBuilder.Append(role.Name + ", ");
+
+                rolesBuilder = tempBuilder;
+                i++;
+            }
+
+            return rolesBuilder.ToString();
+        }
+
+        
     }
 
     public static class StaticMethods
@@ -73,6 +125,18 @@ namespace koichibot.Essentials
             Log.Error(ex, "Details: ");
             Log.Error("----------------------------------------------");
             return;
+        }
+
+        public static bool IsGuildUser(this IGuild guild, string user)
+        {
+            foreach (var guildUser in guild.GetUsersAsync().Result)
+            {
+                if (guildUser.Username == user || guildUser.Nickname == user || guildUser.Id.ToString() == user)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
