@@ -281,7 +281,7 @@ namespace koichibot.Modules
                         .WithColor(Color.DarkTeal);
 
                     await ReplyAsync("", false, embedBuilder.Build());
-                    return; 
+                    return;
                 }
             }
             catch (Exception ex)
@@ -295,64 +295,25 @@ namespace koichibot.Modules
         // find a way to actually display an error if no match
         [Command("userinfo")]
         [Summary("Displays user related information.")]
-        public async Task UserInfoAsync([Optional] IGuildUser guildUser, [Optional] params string[] ignore)
+        public async Task UserInfoAsync([Optional] IGuildUser guildUser)
         {
+            var user = guildUser as SocketGuildUser ?? Context.User as SocketGuildUser;
             try
             {
-                if (guildUser is null /*|| guildUser.Length == 0*/)
-                {
-                    EmbedBuilder embedBuilder = new EmbedBuilder();
-                    Methods methods = new Methods();
-                    var user = Context.User as SocketGuildUser;
+                EmbedBuilder embedBuilder = new EmbedBuilder();
+                Methods methods = new Methods();
 
-                    embedBuilder.WithAuthor(Context.User)
-                        .WithThumbnailUrl(user.GetAvatarUrl())
-                        .AddField("ID", user.Id, true)
-                        .AddField("Mention", user.Mention, true)
-                        .AddField("Joined at", user.JoinedAt.Value.UtcDateTime, false)
-                        .AddField("Created at", user.CreatedAt.UtcDateTime, false)
-                        .AddField($"Roles [{user.Roles.Count}]", await methods.GetGuildUserRoles(user), false)
-                        .WithColor(await methods.GetGuildUserRoleColor(user));
+                embedBuilder.WithAuthor(user)
+                    .WithThumbnailUrl(user.GetAvatarUrl())
+                    .AddField("ID", user.Id, true)
+                    .AddField("Mention", user.Mention, true)
+                    .AddField("Joined at", user.JoinedAt.Value.UtcDateTime, false)
+                    .AddField("Created at", user.CreatedAt.UtcDateTime, false)
+                    .AddField($"Roles [{user.Roles.Count}]", await methods.GetGuildUserRoles(user), false)
+                    .WithColor(await methods.GetGuildUserRoleColor(user));
 
-                    await ReplyAsync("", false, embedBuilder.Build());
-                    return;
-                }
-                else
-                {
-                    //var queriedUser = guildUser as SocketGuildUser;
-                    //var lastUser = Context.Guild.Users.Last();
-                    //foreach (var user in Context.Guild.Users)
-                    //{
-                    //    if (user == guildUser)
-                    //        break;
-                    //    if (user == lastUser && user != guildUser)
-                    //    {
-                    //        await ReplyAsync("Couldn't find a matching user.");
-                    //        return;
-                    //    }
-                    //}
-
-                    //if (Context.Guild.IsGuildUser(guildUser.ParseText()))
-                    //{
-                    //    await ReplyAsync("Couldn't find a matching user.");
-                    //    return;
-                    //}
-                    var queriedUser = guildUser;
-                    Methods methods = new Methods();
-                    EmbedBuilder embedBuilder = new EmbedBuilder();
-
-                    embedBuilder.WithAuthor(queriedUser as SocketUser)
-                        .WithThumbnailUrl(queriedUser.GetAvatarUrl())
-                        .AddField("ID", queriedUser.Id, true)
-                        .AddField("Mention", queriedUser.Mention, true)
-                        .AddField("Joined at", queriedUser.JoinedAt.Value.UtcDateTime, false)
-                        .AddField("Created at", queriedUser.CreatedAt.UtcDateTime, false)
-                        .AddField($"Roles [{(queriedUser as SocketGuildUser).Roles.Count}]", await methods.GetGuildUserRoles(queriedUser as SocketGuildUser), false)
-                        .WithColor(await methods.GetGuildUserRoleColor(queriedUser as SocketGuildUser));
-
-                    await ReplyAsync("", false, embedBuilder.Build());
-                    return;
-                }
+                await ReplyAsync("", false, embedBuilder.Build());
+                return;
             }
             catch (Exception ex)
             {

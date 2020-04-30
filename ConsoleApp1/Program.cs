@@ -23,14 +23,23 @@ namespace koichibot
         private async Task MainAsync()
         {
             // logger initializiton
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
-                .WriteTo.Console()
-                .WriteTo.Logger(lc => lc.Filter.ByIncludingOnly(e => e.Level == Serilog.Events.LogEventLevel.Error).WriteTo.File("logs\\error-.txt", rollingInterval: RollingInterval.Day))
-                .WriteTo.File("logs\\latest-.txt", rollingInterval: RollingInterval.Day)
-                .CreateLogger();
+            try
+            {
+                Log.Logger = new LoggerConfiguration()
+                        .MinimumLevel.Debug()
+                        .WriteTo.Console()
+                        .WriteTo.Logger(lc => lc.Filter.ByIncludingOnly(e => e.Level == Serilog.Events.LogEventLevel.Error).WriteTo.File("logs\\error-.txt", rollingInterval: RollingInterval.Day))
+                        .WriteTo.File("logs\\latest-.txt", rollingInterval: RollingInterval.Day)
+                        .CreateLogger();
 
-            Log.Information("Starting up...");
+                Log.Information("Starting up...");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error while initializing logger!");
+                Console.WriteLine(ex.ToString());
+                return;
+            }
             // logger initialization end
 
             Client = new DiscordSocketClient(new DiscordSocketConfig
