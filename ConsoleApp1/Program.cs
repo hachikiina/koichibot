@@ -2,12 +2,12 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using koichibot.Essentials;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using Serilog;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace koichibot
 {
@@ -28,8 +28,8 @@ namespace koichibot
                 Log.Logger = new LoggerConfiguration()
                         .MinimumLevel.Debug()
                         .WriteTo.Console()
-                        .WriteTo.Logger(lc => lc.Filter.ByIncludingOnly(e => e.Level == Serilog.Events.LogEventLevel.Error).WriteTo.File("logs\\error-.txt", rollingInterval: RollingInterval.Day))
-                        .WriteTo.File("logs\\latest-.txt", rollingInterval: RollingInterval.Day)
+                        .WriteTo.Logger(lc => lc.Filter.ByIncludingOnly(e => e.Level == Serilog.Events.LogEventLevel.Error).WriteTo.File(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs", "error-.txt"), rollingInterval: RollingInterval.Day))
+                        .WriteTo.File(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs", "latest-.txt"), rollingInterval: RollingInterval.Day)
                         .CreateLogger();
 
                 Log.Information("Starting up...");
@@ -84,7 +84,7 @@ namespace koichibot
                 {
                     using (var stream = new FileStream(Path.Combine(dirData, "token.txt"), FileMode.Open, FileAccess.Read))
                     using (var readFile = new StreamReader(stream))
-                        token = readFile.ReadToEnd();
+                        token = readFile.ReadToEnd().Replace("\n", "");
                 }
                 catch (Exception ex)
                 {

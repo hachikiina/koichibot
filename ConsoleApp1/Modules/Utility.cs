@@ -251,7 +251,7 @@ namespace koichibot.Modules
                         // will probably throw a exception if the length is over 1024, too lazy to fix though
                         if (tempBuilder.Length >= 1024)
                         {
-                            rolesBuilder = rolesBuilder.Remove(rolesBuilder.Length - 2, rolesBuilder.Length);
+                            rolesBuilder = rolesBuilder.Remove(1023, rolesBuilder.Length);
                             break;
                         }
 

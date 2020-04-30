@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using YouTubeSearch;
 using Serilog;
+using Discord.WebSocket;
 
 namespace koichibot.Modules
 {
@@ -113,6 +114,58 @@ namespace koichibot.Modules
                 await ReplyAsync("Heads!");
 
             return;
+        }
+
+        [Command("rolldice")]
+        [Summary("Rolls a dice.")]
+        public async Task RollDiceAsync([Optional] params string[] type)
+        {
+            try
+            {
+                if (type.Length == 0)
+                {
+                    Random random = new Random();
+                    await ReplyAsync("You random number is: " + random.Next(1, 7));
+                    return;
+                }
+                else
+                {
+                    bool success = int.TryParse(type.ParseText(), out int maxVal);
+                    if (success)
+                    {
+                        if (maxVal > 0)
+                        {
+                            Random random = new Random();
+                            Methods methods = new Methods();
+                            //await ReplyAsync("Your random number is: " + random.Next(1, maxVal));
+                            //EmbedBuilder embedBuilder = new EmbedBuilder()
+                            //{
+                            //    Color = await methods.GetGuildUserRoleColor(Context.User as SocketGuildUser),
+                            //    Description = "Your random number is: " + random.Next(1, maxVal + 1),
+                            //    ImageUrl = methods.DrawRegularPolygon(maxVal, 500f, Context)
+                            //};
+                            //await ReplyAsync("", false, embedBuilder.Build());
+                            await Context.Channel.SendFileAsync(methods.DrawRegularPolygon(maxVal, 500f, Context), "Your random number is: " + random.Next(1, maxVal + 1));
+                            return;
+                        }
+                        else
+                        {
+                            await ReplyAsync("Please provida a workable number. It should a positive integer.");
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        await ReplyAsync("Please provida a workable number. It should a positive integer.");
+                        return;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await StaticMethods.ExceptionHandler(ex, Context);
+                return;
+            }
         }
     }
 }

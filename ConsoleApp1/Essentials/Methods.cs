@@ -10,6 +10,7 @@ using Discord.WebSocket;
 using System.IO;
 using Serilog;
 using System.Text;
+using System.Drawing;
 
 namespace koichibot.Essentials
 {
@@ -30,6 +31,7 @@ namespace koichibot.Essentials
             }
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         public async Task<string> GetAhegaoFromEg()
         {
             string json = new WebClient().DownloadString("https://raw.githubusercontent.com/egecelikci/ahegao/master/data.json");
@@ -55,11 +57,11 @@ namespace koichibot.Essentials
         /// </summary>
         /// <param name="user"></param>
         /// <returns></returns>
-        public async Task<Color> GetGuildUserRoleColor(SocketGuildUser user)
+        public async Task<Discord.Color> GetGuildUserRoleColor(SocketGuildUser user)
         {
             if (user.Roles.Count == 0)
             {
-                return Color.Default;
+                return Discord.Color.Default;
             }
             else
             {
@@ -69,7 +71,7 @@ namespace koichibot.Essentials
                     if (role.Color.RawValue != 0)
                         return role.Color;
                 }
-                return Color.Default;
+                return Discord.Color.Default;
             }
             throw new InvalidOperationException("No roles match the statements.");
         }
@@ -80,6 +82,7 @@ namespace koichibot.Essentials
         /// <param name="user"></param>
         /// <returns></returns>
         public async Task<string> GetGuildUserRoles(SocketGuildUser user)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             StringBuilder rolesBuilder = new StringBuilder();
             StringBuilder tempBuilder = new StringBuilder();
@@ -99,7 +102,31 @@ namespace koichibot.Essentials
             return rolesBuilder.ToString();
         }
 
-        
+        public string DrawRegularPolygon(int vertexCount, float radius, SocketCommandContext context)
+        {
+            using (Bitmap bmp = new Bitmap(1024, 1024))
+            using (Graphics graphics = Graphics.FromImage(bmp))
+            {
+                string imagesPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data", "images");
+                if (!Directory.Exists(imagesPath))
+                    Directory.CreateDirectory(imagesPath);
+
+                graphics.Clear(System.Drawing.Color.Transparent);
+                PointF center = new PointF(512f, 512f);
+
+                var angle = Math.PI * 2 / vertexCount;
+                var points = Enumerable.Range(0, vertexCount).Select(i => PointF.Add(center, new SizeF((float)Math.Sin(i * angle) * radius,
+                    (float)Math.Cos(i * angle) * radius)));
+                var color = GetGuildUserRoleColor(context.User as SocketGuildUser).Result;
+                var brush = new SolidBrush(System.Drawing.Color.FromArgb(255, color.R, color.G, color.B));
+
+                graphics.FillPolygon(brush, points.ToArray());
+                graphics.DrawPolygon(new Pen(Brushes.Black, 5f), points.ToArray());
+
+                bmp.Save(Path.Combine(imagesPath, context.Message.Id + ".png"), System.Drawing.Imaging.ImageFormat.Png);
+                return Path.Combine(imagesPath, context.Message.Id + ".png");
+            }
+        }
     }
 
     public static class StaticMethods
@@ -188,32 +215,5 @@ namespace koichibot.Essentials
 
         [JsonProperty("current_vote")]
         public string CurrentVote { get; set; }
-    }
-
-    public class ExceptionList
-    {
-        [JsonProperty("type")]
-        public Exception type { get; set; }
-
-        [JsonProperty("data")]
-        public System.Collections.IDictionary Data { get; set; }
-
-        [JsonProperty("innerException")]
-        public Exception InnerException { get; set; }
-
-        [JsonProperty("message")]
-        public string Message { get; set; }
-
-        [JsonProperty("source")]
-        public string Source { get; set; }
-
-        [JsonProperty("stackTrace")]
-        public string StackTrace { get; set; }
-    }
-
-    public class Exceptions
-    {
-        [JsonProperty("exceptionList")]
-        public List<ExceptionList> ExceptionList { get; set; }
     }
 }
