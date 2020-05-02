@@ -34,11 +34,9 @@ namespace koichibot.Essentials
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         public async Task<string> GetAhegaoFromEg()
         {
-            string json = new WebClient().DownloadString("https://raw.githubusercontent.com/egecelikci/ahegao/master/data.json");
+            string json = new WebClient().DownloadString("https://ahegao.egecelikci.com/api");
             Ahg ahegao = JsonConvert.DeserializeObject<Ahg>(json);
-            Random random = new Random();
-            int rndNum = random.Next(0, ahegao.Ahegao.Length);
-            return ahegao.Ahegao[rndNum];
+            return ahegao.Msg;
         }
 
         public async Task<List> GetUrbanQuery(string query)
