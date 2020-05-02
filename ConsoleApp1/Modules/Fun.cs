@@ -138,14 +138,14 @@ namespace koichibot.Modules
                             Random random = new Random();
                             Methods methods = new Methods();
                             //await ReplyAsync("Your random number is: " + random.Next(1, maxVal));
-                            //EmbedBuilder embedBuilder = new EmbedBuilder()
-                            //{
-                            //    Color = await methods.GetGuildUserRoleColor(Context.User as SocketGuildUser),
-                            //    Description = "Your random number is: " + random.Next(1, maxVal + 1),
-                            //    ImageUrl = methods.DrawRegularPolygon(maxVal, 500f, Context)
-                            //};
-                            //await ReplyAsync("", false, embedBuilder.Build());
-                            await Context.Channel.SendFileAsync(methods.DrawRegularPolygon(maxVal, 500f, Context), "Your random number is: " + random.Next(1, maxVal + 1));
+                            EmbedBuilder embedBuilder = new EmbedBuilder()
+                            {
+                                Color = await methods.GetGuildUserRoleColor(Context.User as SocketGuildUser),
+                                Description = "Your random number is: " + random.Next(1, maxVal + 1),
+                                ImageUrl = "attachment://" + methods.DrawRegularPolygon(maxVal, 500f, Context)
+                            };
+                            await ReplyAsync("", false, embedBuilder.Build());
+                            //await Context.Channel.SendFileAsync(methods.DrawRegularPolygon(maxVal, 500f, Context), "Your random number is: " + random.Next(1, maxVal + 1));
                             return;
                         }
                         else

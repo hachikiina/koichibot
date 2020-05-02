@@ -34,11 +34,9 @@ namespace koichibot.Essentials
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         public async Task<string> GetAhegaoFromEg()
         {
-            string json = new WebClient().DownloadString("https://raw.githubusercontent.com/egecelikci/ahegao/master/data.json");
+            string json = new WebClient().DownloadString("https://ahegao.egecelikci.com/api");
             Ahg ahegao = JsonConvert.DeserializeObject<Ahg>(json);
-            Random random = new Random();
-            int rndNum = random.Next(0, ahegao.Ahegao.Length);
-            return ahegao.Ahegao[rndNum];
+            return ahegao.Msg;
         }
 
         public async Task<List> GetUrbanQuery(string query)
@@ -177,8 +175,8 @@ namespace koichibot.Essentials
 
     public class Ahg
     {
-        [JsonProperty("ahegao")]
-        public string[] Ahegao { get; set; }
+        [JsonProperty("msg")]
+        public string Msg { get; set; }
     }
 
     public class UrbanDefine
@@ -215,5 +213,18 @@ namespace koichibot.Essentials
 
         [JsonProperty("current_vote")]
         public string CurrentVote { get; set; }
+    }
+
+    public class Permissions
+    {
+        [JsonProperty("guild")]
+        public Dictionary<IUserGuild, List<string>> Guild { get; set; }
+
+        [JsonProperty("guildChannel")]
+        public Dictionary<IGuildChannel, List<string>> GuildChannel { get; set; }
+
+        [JsonProperty("guildChannelUser")]
+        public Dictionary<IGuildChannel, Dictionary<IGuildUser, List<string>>> GuildChannelUser { get; set; }
+
     }
 }
