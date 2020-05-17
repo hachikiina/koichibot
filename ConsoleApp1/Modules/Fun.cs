@@ -125,8 +125,15 @@ namespace koichibot.Modules
                 if (type.Length == 0)
                 {
                     Random random = new Random();
-                    await ReplyAsync("You random number is: " + random.Next(1, 7));
-                    return;
+                    Methods methods = new Methods();
+                    int rndNum = random.Next(1, 7);
+
+                    EmbedBuilder embedBuilder = new EmbedBuilder();
+                    embedBuilder.WithTitle("Your random number is: " + rndNum)
+                        .WithColor(await methods.GetGuildUserRoleColor(Context.Message.Author as SocketGuildUser))
+                        .WithImageUrl("attachment://" + Context.Message.Id.ToString() + ".png");
+
+                    await Context.Channel.SendFileAsync(methods.DrawRegularPolygonSK(6, 500f, Context, rndNum), embed: embedBuilder.Build());
                 }
                 else
                 {
@@ -137,26 +144,25 @@ namespace koichibot.Modules
                         {
                             Random random = new Random();
                             Methods methods = new Methods();
-                            //await ReplyAsync("Your random number is: " + random.Next(1, maxVal));
-                            EmbedBuilder embedBuilder = new EmbedBuilder()
-                            {
-                                Color = await methods.GetGuildUserRoleColor(Context.User as SocketGuildUser),
-                                Description = "Your random number is: " + random.Next(1, maxVal + 1),
-                                ImageUrl = "attachment://" + methods.DrawRegularPolygon(maxVal, 500f, Context)
-                            };
-                            await ReplyAsync("", false, embedBuilder.Build());
-                            //await Context.Channel.SendFileAsync(methods.DrawRegularPolygon(maxVal, 500f, Context), "Your random number is: " + random.Next(1, maxVal + 1));
+                            int rndNum = random.Next(1, maxVal + 1);
+
+                            EmbedBuilder embedBuilder = new EmbedBuilder();
+                            embedBuilder.WithTitle("Your random number is: " + rndNum)
+                                .WithColor(await methods.GetGuildUserRoleColor(Context.Message.Author as SocketGuildUser))
+                                .WithImageUrl("attachment://" + Context.Message.Id.ToString() + ".png");
+
+                            await Context.Channel.SendFileAsync(methods.DrawRegularPolygonSK(maxVal, 500f, Context, rndNum), embed: embedBuilder.Build());
                             return;
                         }
                         else
                         {
-                            await ReplyAsync("Please provida a workable number. It should a positive integer.");
+                            await ReplyAsync("Please provide a workable number. It should a positive integer.");
                             return;
                         }
                     }
                     else
                     {
-                        await ReplyAsync("Please provida a workable number. It should a positive integer.");
+                        await ReplyAsync("Please provide a workable number. It should a positive integer.");
                         return;
                     }
                 }

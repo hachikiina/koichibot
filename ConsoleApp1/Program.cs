@@ -2,12 +2,12 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using koichibot.Essentials;
+using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 using System;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
-using Serilog;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace koichibot
 {
@@ -75,6 +75,7 @@ namespace koichibot
                 }
                 if (!File.Exists(Path.Combine(dirData, "token.txt")))
                 {
+                    // i haven't disposed it because it'll only run once and the program will end afterwards.
                     File.Create(Path.Combine(dirData, "token.txt"));
                     Log.Error("There is no token.txt; created one. Please enter a token in it.");
                     return;
@@ -114,16 +115,17 @@ namespace koichibot
 
         private async Task HandleCommandAsync(SocketMessage arg)
         {
-            var msg = arg as SocketUserMessage;
-            string compare = msg.ToString().ToLower();
+            SocketUserMessage msg = arg as SocketUserMessage;
 
             if (msg is null || msg.Author.IsBot) return;
+
+            ContextCheck contextCheck = new ContextCheck();
+            await contextCheck.CheckLink(new SocketCommandContext(Client, msg), arg);
 
             int argPos = 0;
             if (msg.HasStringPrefix("b!", ref argPos) || msg.HasMentionPrefix(Client.CurrentUser, ref argPos))
             {
                 var context = new SocketCommandContext(Client, msg);
-
                 await Commands.ExecuteAsync(context, argPos, Services);
             }
         }
