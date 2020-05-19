@@ -12,6 +12,7 @@ using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace koichibot.Essentials
@@ -209,11 +210,11 @@ namespace koichibot.Essentials
             }
         }
 
-        public async Task QuoteAsync(SocketCommandContext context, string messageContent)
+        public async Task QuoteAsync(SocketCommandContext context, string jumpUrl, List<string> messageContent)
         {
             try
             {
-                string messageUrl = messageContent.Split(' ').First().ToLower().Substring(messageContent.Split(' ').First().Length - 56);
+                string messageUrl = jumpUrl.Split(' ').First().ToLower().Substring(jumpUrl.Split(' ').First().Length - 56);
                 string[] ids = messageUrl.Split('/');
                 if (!ulong.TryParse(ids[0], out ulong guildID) || !ulong.TryParse(ids[1], out ulong channelID))
                 {
@@ -241,7 +242,7 @@ namespace koichibot.Essentials
 
                         await context.Channel.SendMessageAsync("", false, embedBuilder.Build());
 
-                        if (!(messageContent.Split(' ').Count() > 1))
+                        if (!(messageContent.Count() > 1))
                             await context.Message.DeleteAsync();
 
                         return;

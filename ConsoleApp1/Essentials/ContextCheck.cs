@@ -9,6 +9,7 @@ using Serilog;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text.RegularExpressions;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace koichibot.Essentials
 {
@@ -18,15 +19,19 @@ namespace koichibot.Essentials
         public async Task CheckLink(SocketCommandContext context, SocketMessage arg)
         {
             string messageContent = arg.Content;
-            var matches = MessageRegex.Matches(messageContent.Split(' ').First());
+            List<string> matches = new List<string>();
+            foreach (var input in messageContent.Split(' '))
+            {
+                if (MessageRegex.IsMatch(input))
+                {
+                    matches.Add(input);
+                }
+            }
 
-            if (matches.Count > 0) 
+            if (matches.Count() > 0) 
             {
                 Methods methods = new Methods();
-                foreach (var match in matches)
-                {
-                    await methods.QuoteAsync(context, messageContent);
-                }
+                await methods.QuoteAsync(context, matches.First(), messageContent.Split(' ').ToList());
             }
             return;
         }
