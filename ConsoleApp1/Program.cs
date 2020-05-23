@@ -8,6 +8,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace koichibot
 {
@@ -16,6 +17,7 @@ namespace koichibot
         public DiscordSocketClient Client;
         private CommandService Commands;
         private IServiceProvider Services;
+        private SettingsJson Settings = new SettingsJson();
 
         static void Main(string[] args)
         => new Program().MainAsync().GetAwaiter().GetResult();
@@ -67,40 +69,44 @@ namespace koichibot
 
             try
             {
-                string token = "";
+                //SettingsJson settings = new SettingsJson();
                 string dirData = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data");
                 if (!Directory.Exists(dirData))
                 {
                     Directory.CreateDirectory(dirData);
                 }
-                if (!File.Exists(Path.Combine(dirData, "token.txt")))
+                if (!File.Exists(Path.Combine(dirData, "settings.json")))
                 {
                     // i haven't disposed it because it'll only run once and the program will end afterwards.
-                    File.Create(Path.Combine(dirData, "token.txt"));
-                    Log.Error("There is no token.txt; created one. Please enter a token in it.");
+                    using (StreamWriter sw = new StreamWriter(File.Create(Path.Combine(dirData, "settings.json"))))
+                    {
+                        var tempSet = new SettingsJson { Token = "TOKEN_HERE", Prefix = "PREFIX_HERE" };
+                        sw.WriteLine(JsonConvert.SerializeObject(tempSet, Formatting.Indented));
+                    }
+                    Log.Error("There is no settings.json; created one. Please enter your settings in it.");
                     return;
                 }
 
                 try
                 {
-                    using (var stream = new FileStream(Path.Combine(dirData, "token.txt"), FileMode.Open, FileAccess.Read))
+                    using (var stream = new FileStream(Path.Combine(dirData, "settings.json"), FileMode.Open, FileAccess.Read))
                     using (var readFile = new StreamReader(stream))
-                        token = readFile.ReadToEnd().Replace("\n", "");
+                        Settings = JsonConvert.DeserializeObject<SettingsJson>(readFile.ReadToEnd().Replace("\n", ""));
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(ex, "Error while reading token:");
+                    Log.Error(ex, "Error while reading settings:");
                     return;
                 }
 
                 try
                 {
-                    await Client.LoginAsync(TokenType.Bot, token);
+                    await Client.LoginAsync(TokenType.Bot, Settings.Token);
                     await Client.StartAsync();
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(ex, "Error while initializing bot:");
+                    Log.Error(ex, "Error while starting the bot up:");
                     return;
                 }
             }
@@ -123,7 +129,7 @@ namespace koichibot
             await contextCheck.CheckLink(new SocketCommandContext(Client, msg), arg);
 
             int argPos = 0;
-            if (msg.HasStringPrefix("b!", ref argPos) || msg.HasMentionPrefix(Client.CurrentUser, ref argPos))
+            if (msg.HasStringPrefix(Settings.Prefix, ref argPos) || msg.HasMentionPrefix(Client.CurrentUser, ref argPos))
             {
                 var context = new SocketCommandContext(Client, msg);
                 await Commands.ExecuteAsync(context, argPos, Services);
@@ -137,7 +143,7 @@ namespace koichibot
 
         private async Task Client_Ready()
         {
-            await Client.SetGameAsync("b!help | sup?", null, Discord.ActivityType.Playing);
+            await Client.SetGameAsync(Settings.Prefix + "help | sup?", null, Discord.ActivityType.Playing);
         }
     }
 }

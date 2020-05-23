@@ -27,6 +27,7 @@ namespace koichibot.Modules
         public async Task AvatarAsync([Optional] IGuildUser username)
         {
             // still doesn't get to method body if the given arg isn't a user.
+            Methods methods = new Methods();
             try
             {
                 if (username != null)
@@ -35,14 +36,14 @@ namespace koichibot.Modules
                     {
                         if (username == user)
                         {
-                            string avatarUrl = username.GetAvatarUrl();
-                            avatarUrl = avatarUrl.Replace("?size=128", "?size=1024");
+                            string avatarUrl = username.GetAvatarUrl().Replace("?size=128", "?size=1024");
 
                             EmbedBuilder builder = new EmbedBuilder();
 
                             builder.WithTitle($"{ username.Username }#{ username.Discriminator }'s Avatar")
+                                .WithDescription($"[Direct Link]({avatarUrl})")
                                 .WithImageUrl(avatarUrl)
-                                .WithColor(Color.DarkPurple);
+                                .WithColor(await methods.GetGuildUserRoleColor(Context.User as SocketGuildUser));
 
                             await ReplyAsync("", false, builder.Build());
                             return;
@@ -54,14 +55,14 @@ namespace koichibot.Modules
                 }
                 else
                 {
-                    string avatarUrl = Context.User.GetAvatarUrl();
-                    avatarUrl = avatarUrl.Replace("?size=128", "?size=1024");
+                    string avatarUrl = Context.User.GetAvatarUrl().Replace("?size=128", "?size=1024");
 
                     EmbedBuilder builder = new EmbedBuilder();
 
                     builder.WithTitle($"{ Context.User.Username }#{ Context.User.Discriminator }'s Avatar")
+                        .WithDescription($"[Direct Link]({avatarUrl})")
                         .WithImageUrl(avatarUrl)
-                        .WithColor(Color.DarkPurple);
+                        .WithColor(await methods.GetGuildUserRoleColor(Context.User as SocketGuildUser));
 
                     await ReplyAsync("", false, builder.Build());
                     return;
@@ -232,6 +233,7 @@ namespace koichibot.Modules
         {
             try
             {
+                Methods methods = new Methods();
                 EmbedBuilder embedBuilder = new EmbedBuilder();
                 // role builder
                 if (query.ParseText() == "roles")
@@ -258,7 +260,7 @@ namespace koichibot.Modules
                     }
                     embedBuilder.WithTitle($"Roles [{Context.Guild.Roles.Count}]")
                         .WithDescription(rolesBuilder.ToString())
-                        .WithColor(Color.DarkTeal);
+                        .WithColor(await methods.GetGuildUserRoleColor(Context.User as SocketGuildUser));
 
                     await ReplyAsync("", false, embedBuilder.Build());
                 }
@@ -276,7 +278,7 @@ namespace koichibot.Modules
                     embedBuilder.AddField("Roles", "To see the prompt with list of roles, please run `b!server roles`", false);
 
                     embedBuilder.WithFooter("Created at: " + Context.Guild.CreatedAt.UtcDateTime.ToString())
-                        .WithColor(Color.DarkTeal);
+                        .WithColor(await methods.GetGuildUserRoleColor(Context.User as SocketGuildUser));
 
                     await ReplyAsync("", false, embedBuilder.Build());
                     return;

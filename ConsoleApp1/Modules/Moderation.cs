@@ -58,7 +58,7 @@ namespace koichibot.Modules
                 }
                 if (user is null)
                 {
-                    await ReplyAsync("Usage: b!kick <user> [reason]");
+                    await ReplyAsync("Usage: `b!kick <user> [reason]`");
                     return;
                 }
 

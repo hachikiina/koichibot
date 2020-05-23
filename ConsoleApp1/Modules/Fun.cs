@@ -84,7 +84,7 @@ namespace koichibot.Modules
                 embedBuilder.AddField("Rating", response.ThumbsUp + " :thumbsup: / " + response.ThumbsDown + " :thumbsdown:", true)
                     .AddField("Author", response.Author, true)
                     .WithFooter("Powered by urbandictionary.com")
-                    .WithColor(Color.DarkMagenta);
+                    .WithColor(await methods.GetGuildUserRoleColor(Context.User as SocketGuildUser));
 
                 await ReplyAsync("", false, embedBuilder.Build());
                 return;
@@ -106,13 +106,26 @@ namespace koichibot.Modules
         [Summary("Flips a coin for you.")]
         public async Task FlipCoinAsync()
         {
+            Methods methods = new Methods();
+            EmbedBuilder embedBuilder = new EmbedBuilder();
+            embedBuilder.WithTitle("The result is...")
+                .WithColor(await methods.GetGuildUserRoleColor(Context.User as SocketGuildUser))
+                .WithFooter(Context.User.Username + "#" + Context.User.DiscriminatorValue, Context.User.GetAvatarUrl());
             Random random = new Random();
             int result = random.Next(0, 100);
+            // i can maybe download these from the links later or smth idk...
             if (result > 50)
-                await ReplyAsync("Tails!");
+            {
+                embedBuilder.WithDescription("Tails!");
+                embedBuilder.WithImageUrl("https://upload.wikimedia.org/wikipedia/commons/6/64/1TL_obverse.png");
+            }
             else
-                await ReplyAsync("Heads!");
+            {
+                embedBuilder.WithDescription("Heads!");
+                embedBuilder.WithImageUrl("https://upload.wikimedia.org/wikipedia/commons/c/cd/1TL_reverse.png");
+            }
 
+            await ReplyAsync("", embed: embedBuilder.Build());
             return;
         }
 

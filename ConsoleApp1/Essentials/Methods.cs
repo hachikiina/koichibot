@@ -367,4 +367,12 @@ namespace koichibot.Essentials
         public Dictionary<IGuildChannel, Dictionary<IGuildUser, List<string>>> GuildChannelUser { get; set; }
 
     }
+
+    public class SettingsJson
+    {
+        [JsonProperty("token")]
+        public string Token { get; set; }
+        [JsonProperty("prefix")]
+        public string Prefix { get; set; }
+    }
 }
