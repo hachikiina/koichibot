@@ -67,14 +67,13 @@ namespace koichibot
                 .BuildServiceProvider();
 
             Client.MessageReceived += HandleCommandAsync;
-            await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), null);
+            await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), Services);
 
             Client.Ready += Client_Ready;
             Client.Log += Client_Log;
 
             try
             {
-                //SettingsJson settings = new SettingsJson();
                 string dirData = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data");
                 if (!Directory.Exists(dirData))
                 {

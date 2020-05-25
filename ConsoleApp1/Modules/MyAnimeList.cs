@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace koichibot.Modules
 {
@@ -169,16 +170,42 @@ namespace koichibot.Modules
                 IJikan jikan = new Jikan(true);
 
                 AnimeSearchResult animeSearch = await jikan.SearchAnime(query.ParseText());
+                Dictionary<int, string> results = new Dictionary<int, string>();
                 int i = 0;
                 foreach (var item in animeSearch.Results)
                 {
                     if (i == 10) break;
                     strBuilder.Append((i + 1).ToString() + " - " + item.Title)
                         .Append(Environment.NewLine);
+                    results.Add(i + 1, item.Title);
                     i++;
                 }
 
-                await ReplyAsync($"```{strBuilder.ToString()}```");
+                var selection = await ReplyAsync($"```{strBuilder.ToString()}```");
+
+                var timespan = TimeSpan.FromSeconds(10);
+                while (timespan != TimeSpan.Zero)
+                {
+                    if (timespan.TotalMilliseconds < TimeSpan.FromMilliseconds(1000).TotalMilliseconds)
+                        break;
+
+                    var response = await NextMessageAsync();
+                    if (response != null)
+                    {
+                        bool success = int.TryParse(response.Content, out int intAnime);
+                        if (success)
+                        {
+                            await selection.DeleteAsync();
+                            await ReplyAsync(results.GetValueOrDefault(intAnime));
+                            return;
+                        }
+                    }
+                    else 
+                    { 
+                        await ReplyAsync("nono you haven't replied cunt...");
+                        return; 
+                    }
+                }
                 return;
             }
             catch (Exception ex)

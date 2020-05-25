@@ -153,6 +153,12 @@ namespace koichibot.Modules
                     bool success = int.TryParse(type.ParseText(), out int maxVal);
                     if (success)
                     {
+                        if (maxVal >= 1 && maxVal <= 2)
+                        {
+                            await FlipCoinAsync();
+                            return;
+                        }
+
                         if (maxVal > 0)
                         {
                             Random random = new Random();
