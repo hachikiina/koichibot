@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Discord.Addons.Interactive;
 using koichibot.Essentials;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -12,10 +13,11 @@ using Newtonsoft.Json;
 
 namespace koichibot
 {
-    public class Program : ModuleBase<SocketCommandContext>
+    public class Program
     {
         public DiscordSocketClient Client;
         private CommandService Commands;
+        //private InteractiveService Interactive;
         private IServiceProvider Services;
         private SettingsJson Settings = new SettingsJson();
 
@@ -51,14 +53,17 @@ namespace koichibot
 
             Commands = new CommandService(new CommandServiceConfig
             {
-                CaseSensitiveCommands = true,
+                CaseSensitiveCommands = false,
                 DefaultRunMode = RunMode.Async,
                 LogLevel = LogSeverity.Debug,
             });
 
+            //Interactive = new InteractiveService(Client);
+
             Services = new ServiceCollection()
                 .AddSingleton(Client)
                 .AddSingleton(Commands)
+                .AddSingleton<InteractiveService>()
                 .BuildServiceProvider();
 
             Client.MessageReceived += HandleCommandAsync;

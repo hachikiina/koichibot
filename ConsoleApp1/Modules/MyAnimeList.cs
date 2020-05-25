@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using Discord.Addons.Interactive;
 using JikanDotNet;
 using koichibot.Essentials;
 using System;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace koichibot.Modules
 {
-    public class MyAnimeList : ModuleBase<SocketCommandContext>
+    public class MyAnimeList : InteractiveBase<SocketCommandContext>
     {
         [Command("anime")]
         [Summary("Searches up anime from MAL.")]
