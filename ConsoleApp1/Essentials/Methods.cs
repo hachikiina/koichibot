@@ -14,6 +14,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using JikanDotNet;
 
 namespace koichibot.Essentials
 {
@@ -86,7 +87,6 @@ namespace koichibot.Essentials
         /// <param name="user"></param>
         /// <returns></returns>
         public async Task<string> GetGuildUserRoles(SocketGuildUser user)
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             StringBuilder rolesBuilder = new StringBuilder();
             StringBuilder tempBuilder = new StringBuilder();
@@ -105,6 +105,7 @@ namespace koichibot.Essentials
 
             return rolesBuilder.ToString();
         }
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
 
         [Obsolete("This method is deprecated, please use DrawRegularPolygonSK instead.", true)]
         public string DrawRegularPolygon(int vertexCount, float radius, SocketCommandContext context)
@@ -140,18 +141,18 @@ namespace koichibot.Essentials
             if (!Directory.Exists(imagesPath))
                 Directory.CreateDirectory(imagesPath);
 
-            using (SKBitmap bmp       = new SKBitmap(1024, 1024))
+            using (SKBitmap bmp = new SKBitmap(1024, 1024))
             using (SKPaint outerPaint = new SKPaint())
             using (SKPaint innerPaint = new SKPaint())
-            using (SKPaint textPaint  = new SKPaint())
-            using (SKCanvas canvas    = new SKCanvas(bmp))
+            using (SKPaint textPaint = new SKPaint())
+            using (SKCanvas canvas = new SKCanvas(bmp))
             {
                 SKPoint center = new SKPoint(bmp.Width / 2, bmp.Height / 2);
                 var angle = Math.PI * 2 / vertexCount;
                 var points = Enumerable.Range(0, vertexCount).Select(i => SKPoint.Add(center, new SKSize((float)Math.Sin(i * angle) * radius,
                     (float)Math.Cos(i * angle) * radius)));
                 var color = GetGuildUserRoleColor(context.User as SocketGuildUser).Result;
-                
+
                 canvas.Clear();
 
                 // this is for the filling of the polygon.
@@ -265,114 +266,149 @@ namespace koichibot.Essentials
                 return;
             }
         }
-    }
 
-    public static class StaticMethods
-    {
-        public static ulong OwnerID = 309758882425733121;
-        public static string ParseText(this string[] message)
+        public Embed CreateAnimeEmbed(Anime anime, SocketGuildUser guildUser)
         {
-            string final = "";
-            foreach (var item in message)
+            EmbedBuilder embedBuilder = new EmbedBuilder();
+            embedBuilder.WithTitle(anime.Title)
+                .WithDescription(anime.Synopsis)
+                .WithThumbnailUrl(anime.ImageURL)
+                .WithUrl("https://myanimelist.net/anime/" + anime.MalId + "/")
+                .WithColor(GetGuildUserRoleColor(guildUser).Result);
+
+            List<EmbedFieldBuilder> fields = new List<EmbedFieldBuilder>();
+            StringBuilder strBuilder = new StringBuilder();
+            if (anime.Airing)
             {
-                final = final + " " + item.ToString();
+                strBuilder.Append(anime.Aired.From.Value.ToString("dd/MM/yyyy"))
+                    .Append(" - ")
+                    .Append("Still Airing");
+
+                fields.Add(new EmbedFieldBuilder { Name = "Status", Value = "Airing", IsInline = true });
+                fields.Add(new EmbedFieldBuilder { Name = "Type", Value = anime.Type, IsInline = true });
+                fields.Add(new EmbedFieldBuilder { Name = "Aired", Value = strBuilder.ToString(), IsInline = false });
             }
-            return final.Trim();
-        }
-
-        public static async Task ExceptionHandler(Exception ex, SocketCommandContext context)
-        {
-            await context.Channel.SendMessageAsync($"Something went wrong, `{ex.GetType()}`");
-            //await context.Channel.SendMessageAsync($"```{ex.ToString()}```");
-            Log.Error($"Something went wrong at {context.Guild.Name}/{context.Channel.Name}");
-            Log.Error($"Message content: \"{context.Message.Content}\"");
-            Log.Error($"({context.Guild.Id}/{context.Channel.Id}/{context.Message.Id})");
-            Log.Error(ex, "Details: ");
-            Log.Error("----------------------------------------------");
-            return;
-        }
-
-        public static bool IsGuildUser(this IGuild guild, string user)
-        {
-            foreach (var guildUser in guild.GetUsersAsync().Result)
+            else
             {
-                if (guildUser.Username == user || guildUser.Nickname == user || guildUser.Id.ToString() == user)
+                if (anime.Type.ToLower() == "movie")
                 {
-                    return true;
+                    strBuilder.Append(anime.Aired.From.Value.ToString("dd/MM/yyyy"));
+
+                    fields.Add(new EmbedFieldBuilder { Name = "Status", Value = "Finished", IsInline = true });
+                    fields.Add(new EmbedFieldBuilder { Name = "Type", Value = anime.Type, IsInline = true });
+                    fields.Add(new EmbedFieldBuilder { Name = "Released", Value = strBuilder.ToString(), IsInline = false });
+                }
+                else
+                {
+                    strBuilder.Append(anime.Aired.From.Value.ToString("dd/MM/yyyy"))
+                            .Append(" - ")
+                            .Append(anime.Aired.To.Value.ToString("dd/MM/yyyy"));
+
+                    fields.Add(new EmbedFieldBuilder { Name = "Status", Value = "Finished", IsInline = true });
+                    fields.Add(new EmbedFieldBuilder { Name = "Type", Value = anime.Type, IsInline = true });
+                    fields.Add(new EmbedFieldBuilder { Name = "Aired", Value = strBuilder.ToString(), IsInline = false });
                 }
             }
-            return false;
+
+            if (anime.Rank != null)
+                fields.Add(new EmbedFieldBuilder { Name = "Rank", Value = anime.Rank, IsInline = true });
+            else
+                fields.Add(new EmbedFieldBuilder { Name = "Rank", Value = "N/A", IsInline = true });
+
+            if (anime.Score != null)
+                fields.Add(new EmbedFieldBuilder { Name = "Score", Value = anime.Score, IsInline = true });
+            else
+                fields.Add(new EmbedFieldBuilder { Name = "Score", Value = "N/A", IsInline = true });
+
+            if (anime.ScoredBy != null)
+                fields.Add(new EmbedFieldBuilder { Name = "Scored by", Value = anime.ScoredBy + " people", IsInline = true });
+            else
+                fields.Add(new EmbedFieldBuilder { Name = "Scored by", Value = "N/A", IsInline = true });
+
+            embedBuilder.WithFields(fields);
+            return embedBuilder.Build();
         }
-    }
 
-    public class Thighs
-    {
-        [JsonProperty("message")]
-        public string Message { get; set; }
-        [JsonProperty("success")]
-        public bool Success { get; set; }
-    }
+        public Embed CreateAnimeEmbed(Anime anime, SocketUser user)
+        {
+            return CreateAnimeEmbed(anime, user as SocketGuildUser);
+        }
 
-    public class Ahg
-    {
-        [JsonProperty("msg")]
-        public string Msg { get; set; }
-    }
+        public Embed CreateAnimeEmbed(Anime anime, IGuildUser guildUser)
+        {
+            return CreateAnimeEmbed(anime, guildUser as SocketGuildUser);
+        }
 
-    public class UrbanDefine
-    {
-        [JsonProperty("list")]
-        public List<List> List { get; set; }
-    }
+        public Embed CreateMangaEmbed(Manga manga, SocketGuildUser guildUser)
+        {
+            EmbedBuilder embedBuilder = new EmbedBuilder();
+            embedBuilder.WithTitle(manga.Title)
+                .WithDescription(manga.Synopsis)
+                .WithThumbnailUrl(manga.ImageURL)
+                .WithUrl("https://myanimelist.net/manga/" + manga.MalId + "/")
+                .WithColor(GetGuildUserRoleColor(guildUser).Result);
 
-    public partial class List
-    {
-        [JsonProperty("defid")]
-        public long Defid { get; set; }
+            List<EmbedFieldBuilder> fields = new List<EmbedFieldBuilder>();
+            StringBuilder strBuilder = new StringBuilder();
+            if (manga.Publishing)
+            {
+                strBuilder.Append(manga.Published.From.Value.ToString("dd/MM/yyyy"))
+                    .Append(" - ")
+                    .Append("Still Publishing.");
 
-        [JsonProperty("word")]
-        public string Word { get; set; }
+                fields.Add(new EmbedFieldBuilder { Name = "Status", Value = "Publishing", IsInline = true });
+                fields.Add(new EmbedFieldBuilder { Name = "Type", Value = manga.Type, IsInline = true });
+                fields.Add(new EmbedFieldBuilder { Name = "Published", Value = strBuilder.ToString(), IsInline = true });
+            }
+            else
+            {
+                if (manga.Type.ToLower() == "novel")
+                {
+                    strBuilder.Append(manga.Published.From.Value.ToString("dd/MM/yyyy"));
 
-        [JsonProperty("author")]
-        public string Author { get; set; }
+                    fields.Add(new EmbedFieldBuilder { Name = "Status", Value = "Published", IsInline = true });
+                    fields.Add(new EmbedFieldBuilder { Name = "Type", Value = manga.Type, IsInline = true });
+                    fields.Add(new EmbedFieldBuilder { Name = "Published", Value = strBuilder.ToString(), IsInline = true });
+                }
+                else
+                {
+                    strBuilder.Append(manga.Published.From.Value.ToString("dd/MM/yyyy"))
+                            .Append(" - ")
+                            .Append(manga.Published.To.Value.ToString("dd/MM/yyyy"));
 
-        [JsonProperty("permalink")]
-        public Uri Permalink { get; set; }
+                    fields.Add(new EmbedFieldBuilder { Name = "Status", Value = "Finished", IsInline = true });
+                    fields.Add(new EmbedFieldBuilder { Name = "Type", Value = manga.Type, IsInline = true });
+                    fields.Add(new EmbedFieldBuilder { Name = "Published", Value = strBuilder.ToString(), IsInline = true }); 
+                }
+            }
 
-        [JsonProperty("definition")]
-        public string Definition { get; set; }
+            if (manga.Rank != null)
+                fields.Add(new EmbedFieldBuilder { Name = "Rank", Value = manga.Rank, IsInline = true });
+            else
+                fields.Add(new EmbedFieldBuilder { Name = "Rank", Value = "N/A", IsInline = true });
 
-        [JsonProperty("example")]
-        public string Example { get; set; }
+            if (manga.Score != null)
+                fields.Add(new EmbedFieldBuilder { Name = "Score", Value = manga.Score, IsInline = true });
+            else
+                fields.Add(new EmbedFieldBuilder { Name = "Score", Value = "N/A", IsInline = true });
 
-        [JsonProperty("thumbs_up")]
-        public long ThumbsUp { get; set; }
+            if (manga.ScoredBy != null)
+                fields.Add(new EmbedFieldBuilder { Name = "Scored by", Value = manga.ScoredBy, IsInline = true });
+            else
+                fields.Add(new EmbedFieldBuilder { Name = "Scored by", Value = "N/A", IsInline = true });
 
-        [JsonProperty("thumbs_down")]
-        public long ThumbsDown { get; set; }
+            embedBuilder.WithFields(fields);
+            return embedBuilder.Build();
+        }
 
-        [JsonProperty("current_vote")]
-        public string CurrentVote { get; set; }
-    }
+        public Embed CreateMangaEmbed(Manga manga, SocketUser user)
+        {
+            return CreateMangaEmbed(manga, user as SocketGuildUser);
+        }
 
-    public class Permissions
-    {
-        [JsonProperty("guild")]
-        public Dictionary<IUserGuild, List<string>> Guild { get; set; }
-
-        [JsonProperty("guildChannel")]
-        public Dictionary<IGuildChannel, List<string>> GuildChannel { get; set; }
-
-        [JsonProperty("guildChannelUser")]
-        public Dictionary<IGuildChannel, Dictionary<IGuildUser, List<string>>> GuildChannelUser { get; set; }
-
-    }
-
-    public class SettingsJson
-    {
-        [JsonProperty("token")]
-        public string Token { get; set; }
-        [JsonProperty("prefix")]
-        public string Prefix { get; set; }
+        public Embed CreateMangaEmbed(Manga manga, IGuildUser guildUser)
+        {
+            return CreateMangaEmbed(manga, guildUser as SocketGuildUser);
+        }
     }
 }

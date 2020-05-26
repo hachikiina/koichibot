@@ -16,77 +16,62 @@ namespace koichibot.Modules
     {
         [Command("anime")]
         [Summary("Searches up anime from MAL.")]
-        public async Task AnimeSearchAsync([Optional] params string[] message)
+        public async Task AnimeSearchAsync([Optional] params string[] query)
         {
-            try
+            if (query.Length == 0)
             {
-                if (message is null || message.Length == 0)
-                {
-                    await ReplyAsync("Please enter something to search for.");
-                    return;
-                }
-
-                string final = message.ParseText();
-
-                IJikan jikan = new Jikan(true);
-
-                AnimeSearchResult animeSearchResult = await jikan.SearchAnime(final);
-                Anime anime = jikan.GetAnime(animeSearchResult.Results.First().MalId).Result;
-
-                string status = "";
-                string airing = "";
-                if (animeSearchResult.Results.First().Airing)
-                {
-                    status = "Airing";
-                    airing = animeSearchResult.Results.First().StartDate
-                        .ToString().Remove(animeSearchResult.Results.First().StartDate.ToString().Length - 9, 9) + " - Still Airing";
-                }
-                else
-                {
-                    status = "Finished";
-                    airing = animeSearchResult.Results.First().StartDate
-                        .ToString().Remove(animeSearchResult.Results.First().StartDate.ToString().Length - 9, 9) +
-                        " - " + animeSearchResult.Results.First().EndDate
-                        .ToString().Remove(animeSearchResult.Results.First().EndDate.ToString().Length - 9, 9);
-                }
-
-                EmbedBuilder embedBuilder = new EmbedBuilder();
-
-                embedBuilder.WithTitle(anime.Title)
-                    .WithThumbnailUrl(anime.ImageURL)
-                    .WithDescription(anime.Synopsis)
-                    .WithColor(Color.DarkGreen)
-                    .AddField("Status", status, true)
-                    .AddField("Type", anime.Type, true)
-                    .AddField("Aired", airing, true)
-                    .AddField("Rank", anime.Rank, true);
-
-                await ReplyAsync("", false, embedBuilder.Build());
+                await ReplyAsync("Kullanım: `b!anime <anime>`");
                 return;
             }
-            catch (ArgumentOutOfRangeException ex)
-            {
-                //await ReplyAsync("Böyle bir anime yok.");
-                //await ReplyAsync($"Detaylar: \n```css" +
-                //    $"\nStack trace\t\t:\t\t{ ex.StackTrace } " +
-                //    $"\nInner exception\t\t:\t\t{ ex.InnerException }" +
-                //    $"```");
 
-                if (ex.InnerException != null)
-                {
-                    await ReplyAsync("Böyle bir anime yok.");
-                    return;
-                    
-                }
-                else
-                {
-                    await ReplyAsync("Böyle bir anime yok.");
-                    return;
-                }
-            }
-            catch (InvalidOperationException)
+            try
             {
-                await ReplyAsync("botu bozmaya çalışma amk");
+                StringBuilder strBuilder = new StringBuilder();
+                IJikan jikan = new Jikan(true);
+
+                AnimeSearchResult animeSearch = await jikan.SearchAnime(query.ParseText());
+                Dictionary<int, AnimeSearchEntry> searchResults = new Dictionary<int, AnimeSearchEntry>();
+                int i = 0;
+                foreach (var anime in animeSearch.Results)
+                {
+                    if (i == 10) break;
+                    strBuilder.Append((i + 1) + " - " + anime.Title)
+                        .Append(Environment.NewLine);
+                    searchResults.Add(i + 1, anime);
+                    i++;
+                }
+
+                var prompt = await ReplyAsync($"```{strBuilder.ToString()}```" + Environment.NewLine +
+                    "Yukarıdan seç ve sadece numarayı yaz. Örneğin `3`");
+
+                var timespan = TimeSpan.FromSeconds(10);
+                while (timespan != TimeSpan.Zero)
+                {
+                    if (timespan.TotalSeconds < TimeSpan.FromSeconds(1).TotalSeconds) break;
+
+                    var response = await NextMessageAsync();
+                    if (response != null)
+                    {
+                        if (int.TryParse(response.Content, out int intAnime) && intAnime <= 10 && intAnime > 0)
+                        {
+                            // embed builder to show it bae.
+                            var anime = jikan.GetAnime(searchResults.GetValueOrDefault(intAnime).MalId).Result;
+                            Methods methods = new Methods();
+                            await prompt.ModifyAsync(msg =>
+                            { 
+                                msg.Content = "";
+                                msg.Embed = methods.CreateAnimeEmbed(anime, Context.User);
+                            });
+                            await response.DeleteAsync();
+                            return;
+                        }
+                        else
+                        {
+                            await ReplyAsync("Zaman aşımı.");
+                            return;
+                        }
+                    }
+                }
                 return;
             }
             catch (Exception ex)
@@ -98,112 +83,60 @@ namespace koichibot.Modules
 
         [Command("manga")]
         [Summary("Searches up manga from MAL.")]
-        public async Task MangaSearchAsync([Optional] params string[] message)
+        public async Task MangaSearchAsync([Optional] params string[] mangaName)
         {
-            try
+            if (mangaName.Length == 0)
             {
-                if (message is null || message.Length == 0) return;
-
-                string final = message.ParseText();
-
-                IJikan jikan = new Jikan(true);
-
-                MangaSearchResult mangaSearchResult = await jikan.SearchManga(final);
-                Manga manga = jikan.GetManga(mangaSearchResult.Results.First().MalId).Result;
-
-                string status;
-                string publishing;
-                if (mangaSearchResult.Results.First().Publishing)
-                {
-                    status = "Publishing";
-                    publishing = mangaSearchResult.Results.First().StartDate
-                        .ToString().Remove(mangaSearchResult.Results.First().StartDate.ToString().Length - 9, 9) + " - Still running";
-                }
-                else
-                {
-                    status = "Finished";
-                    publishing = $"{ mangaSearchResult.Results.First().StartDate.ToString().Remove(mangaSearchResult.Results.First().StartDate.ToString().Length - 9, 9) } - " +
-                        $"{ mangaSearchResult.Results.First().EndDate.ToString().Remove(mangaSearchResult.Results.First().EndDate.ToString().Length - 9, 9) }";
-                }
-
-                EmbedBuilder embedBuilder = new EmbedBuilder();
-
-                embedBuilder.WithTitle(manga.Title)
-                    .WithDescription(manga.Synopsis)
-                    .WithColor(Color.LightOrange)
-                    .WithThumbnailUrl(manga.ImageURL)
-                    .AddField("Status", status, true)
-                    .AddField("Type", manga.Type, true)
-                    .AddField("Published", publishing, true)
-                    .AddField("Rank", manga.Rank, true);
-
-                await ReplyAsync("", false, embedBuilder.Build());
+                await ReplyAsync("Kullanım: `b!manga <manga>`");
                 return;
             }
-            catch (ArgumentOutOfRangeException)
-            {
-                await ReplyAsync("Böyle bir manga yok.");
-                return;
-            }
-            catch (InvalidOperationException)
-            {
-                await ReplyAsync("botu bozmaya çalışma amk");
-                return;
-            }
-            catch (Exception ex)
-            {
-                await StaticMethods.ExceptionHandler(ex, Context);
-                return;
-            }
-        }
 
-        // todo make it promptable
-        [Command("animedev")]
-        [Summary("dev tool")]
-        public async Task AnimeLookupAsync([Optional] params string[] query)
-        {
             try
             {
                 StringBuilder strBuilder = new StringBuilder();
-                string final = query.ParseText();
-
                 IJikan jikan = new Jikan(true);
 
-                AnimeSearchResult animeSearch = await jikan.SearchAnime(query.ParseText());
-                Dictionary<int, string> results = new Dictionary<int, string>();
+                var mangaSearch = jikan.SearchManga(mangaName.ParseText()).Result;
+                Dictionary<int, MangaSearchEntry> searchResults = new Dictionary<int, MangaSearchEntry>();
                 int i = 0;
-                foreach (var item in animeSearch.Results)
+                foreach (var manga in mangaSearch.Results)
                 {
                     if (i == 10) break;
-                    strBuilder.Append((i + 1).ToString() + " - " + item.Title)
+                    strBuilder.Append((i + 1) + " - " + manga.Title)
                         .Append(Environment.NewLine);
-                    results.Add(i + 1, item.Title);
+                    searchResults.Add(i + 1, manga);
                     i++;
                 }
 
-                var selection = await ReplyAsync($"```{strBuilder.ToString()}```");
+                var prompt = await ReplyAsync($"```{strBuilder.ToString()}```" + Environment.NewLine +
+                        "Yukarıdan seç ve sadece numarayı yaz. Örneğin `3`");
 
                 var timespan = TimeSpan.FromSeconds(10);
                 while (timespan != TimeSpan.Zero)
                 {
-                    if (timespan.TotalMilliseconds < TimeSpan.FromMilliseconds(1000).TotalMilliseconds)
-                        break;
+                    if (timespan.TotalSeconds < TimeSpan.FromSeconds(1).TotalSeconds) break;
 
                     var response = await NextMessageAsync();
                     if (response != null)
                     {
-                        bool success = int.TryParse(response.Content, out int intAnime);
-                        if (success)
+                        if (int.TryParse(response.Content, out int intManga) && intManga <= 10 && intManga > 0)
                         {
-                            await selection.DeleteAsync();
-                            await ReplyAsync(results.GetValueOrDefault(intAnime));
+                            // embed builder to show it bae.
+                            var manga = jikan.GetManga(searchResults.GetValueOrDefault(intManga).MalId).Result;
+                            Methods methods = new Methods();
+                            await prompt.ModifyAsync(msg =>
+                            {
+                                msg.Content = "";
+                                msg.Embed = methods.CreateMangaEmbed(manga, Context.User);
+                            });
+                            await response.DeleteAsync();
                             return;
                         }
-                    }
-                    else 
-                    { 
-                        await ReplyAsync("nono you haven't replied cunt...");
-                        return; 
+                        else
+                        {
+                            await ReplyAsync("Zaman aşımı.");
+                            return;
+                        }
                     }
                 }
                 return;
