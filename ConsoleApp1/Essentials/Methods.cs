@@ -56,55 +56,6 @@ namespace koichibot.Essentials
 
             return response.List.First();
         }
-
-        /// <summary>
-        /// Gets the first colored role user has. If there are none, returns Color.Default
-        /// </summary>
-        /// <param name="user"></param>
-        /// <returns></returns>
-        public async Task<Discord.Color> GetGuildUserRoleColor(SocketGuildUser user)
-        {
-            if (user.Roles.Count == 0)
-            {
-                return Discord.Color.Default;
-            }
-            else
-            {
-                foreach (var role in user.Roles)
-                {
-                    //Console.WriteLine(role.Color.ToString() + "\n" + role.Color.RawValue + "\n");
-                    if (role.Color.RawValue != 0)
-                        return role.Color;
-                }
-                return Discord.Color.Default;
-            }
-            throw new InvalidOperationException("No roles match the statements.");
-        }
-
-        /// <summary>
-        /// Gets a guild user's roles and puts lists them as a string.
-        /// </summary>
-        /// <param name="user"></param>
-        /// <returns></returns>
-        public async Task<string> GetGuildUserRoles(SocketGuildUser user)
-        {
-            StringBuilder rolesBuilder = new StringBuilder();
-            StringBuilder tempBuilder = new StringBuilder();
-            int i = 0;
-
-            foreach (var role in user.Roles)
-            {
-                if (i == user.Roles.Count - 1)
-                    tempBuilder.Append(role.Name);
-                else
-                    tempBuilder.Append(role.Name + ", ");
-
-                rolesBuilder = tempBuilder;
-                i++;
-            }
-
-            return rolesBuilder.ToString();
-        }
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
 
         [Obsolete("This method is deprecated, please use DrawRegularPolygonSK instead.", true)]
@@ -124,7 +75,7 @@ namespace koichibot.Essentials
                 var angle = Math.PI * 2 / vertexCount;
                 var points = Enumerable.Range(0, vertexCount).Select(i => PointF.Add(center, new SizeF((float)Math.Sin(i * angle) * radius,
                     (float)Math.Cos(i * angle) * radius)));
-                var color = GetGuildUserRoleColor(context.User as SocketGuildUser).Result;
+                var color = (context.User as SocketGuildUser).GetGuildUserRoleColor();
                 var brush = new SolidBrush(System.Drawing.Color.FromArgb(255, color.R, color.G, color.B));
 
                 graphics.FillPolygon(brush, points.ToArray());
@@ -151,7 +102,7 @@ namespace koichibot.Essentials
                 var angle = Math.PI * 2 / vertexCount;
                 var points = Enumerable.Range(0, vertexCount).Select(i => SKPoint.Add(center, new SKSize((float)Math.Sin(i * angle) * radius,
                     (float)Math.Cos(i * angle) * radius)));
-                var color = GetGuildUserRoleColor(context.User as SocketGuildUser).Result;
+                var color = (context.User as SocketGuildUser).GetGuildUserRoleColor();
 
                 canvas.Clear();
 
@@ -235,8 +186,8 @@ namespace koichibot.Essentials
                         embedBuilder.WithAuthor(message.Author)
                             .WithDescription(message.Content)
                             .AddField("Quoted by", $"{context.Message.Author.Mention} from [{message.Channel.Name}]({message.GetJumpUrl()})")
-                            .WithCurrentTimestamp()
-                            .WithColor(await methods.GetGuildUserRoleColor(context.User as SocketGuildUser));
+                            .WithTimestamp(message.CreatedAt)
+                            .WithColor((context.User as SocketGuildUser).GetGuildUserRoleColor());
 
                         if (message.Attachments.Count > 0)
                             embedBuilder.WithImageUrl(message.Attachments.First().ProxyUrl);
@@ -265,150 +216,6 @@ namespace koichibot.Essentials
                 await StaticMethods.ExceptionHandler(ex, context);
                 return;
             }
-        }
-
-        public Embed CreateAnimeEmbed(Anime anime, SocketGuildUser guildUser)
-        {
-            EmbedBuilder embedBuilder = new EmbedBuilder();
-            embedBuilder.WithTitle(anime.Title)
-                .WithDescription(anime.Synopsis)
-                .WithThumbnailUrl(anime.ImageURL)
-                .WithUrl("https://myanimelist.net/anime/" + anime.MalId + "/")
-                .WithColor(GetGuildUserRoleColor(guildUser).Result);
-
-            List<EmbedFieldBuilder> fields = new List<EmbedFieldBuilder>();
-            StringBuilder strBuilder = new StringBuilder();
-            if (anime.Airing)
-            {
-                strBuilder.Append(anime.Aired.From.Value.ToString("dd/MM/yyyy"))
-                    .Append(" - ")
-                    .Append("Still Airing");
-
-                fields.Add(new EmbedFieldBuilder { Name = "Status", Value = "Airing", IsInline = true });
-                fields.Add(new EmbedFieldBuilder { Name = "Type", Value = anime.Type, IsInline = true });
-                fields.Add(new EmbedFieldBuilder { Name = "Aired", Value = strBuilder.ToString(), IsInline = false });
-            }
-            else
-            {
-                if (anime.Type.ToLower() == "movie")
-                {
-                    strBuilder.Append(anime.Aired.From.Value.ToString("dd/MM/yyyy"));
-
-                    fields.Add(new EmbedFieldBuilder { Name = "Status", Value = "Finished", IsInline = true });
-                    fields.Add(new EmbedFieldBuilder { Name = "Type", Value = anime.Type, IsInline = true });
-                    fields.Add(new EmbedFieldBuilder { Name = "Released", Value = strBuilder.ToString(), IsInline = false });
-                }
-                else
-                {
-                    strBuilder.Append(anime.Aired.From.Value.ToString("dd/MM/yyyy"))
-                            .Append(" - ")
-                            .Append(anime.Aired.To.Value.ToString("dd/MM/yyyy"));
-
-                    fields.Add(new EmbedFieldBuilder { Name = "Status", Value = "Finished", IsInline = true });
-                    fields.Add(new EmbedFieldBuilder { Name = "Type", Value = anime.Type, IsInline = true });
-                    fields.Add(new EmbedFieldBuilder { Name = "Aired", Value = strBuilder.ToString(), IsInline = false });
-                }
-            }
-
-            if (anime.Rank != null)
-                fields.Add(new EmbedFieldBuilder { Name = "Rank", Value = anime.Rank, IsInline = true });
-            else
-                fields.Add(new EmbedFieldBuilder { Name = "Rank", Value = "N/A", IsInline = true });
-
-            if (anime.Score != null)
-                fields.Add(new EmbedFieldBuilder { Name = "Score", Value = anime.Score, IsInline = true });
-            else
-                fields.Add(new EmbedFieldBuilder { Name = "Score", Value = "N/A", IsInline = true });
-
-            if (anime.ScoredBy != null)
-                fields.Add(new EmbedFieldBuilder { Name = "Scored by", Value = anime.ScoredBy + " people", IsInline = true });
-            else
-                fields.Add(new EmbedFieldBuilder { Name = "Scored by", Value = "N/A", IsInline = true });
-
-            embedBuilder.WithFields(fields);
-            return embedBuilder.Build();
-        }
-
-        public Embed CreateAnimeEmbed(Anime anime, SocketUser user)
-        {
-            return CreateAnimeEmbed(anime, user as SocketGuildUser);
-        }
-
-        public Embed CreateAnimeEmbed(Anime anime, IGuildUser guildUser)
-        {
-            return CreateAnimeEmbed(anime, guildUser as SocketGuildUser);
-        }
-
-        public Embed CreateMangaEmbed(Manga manga, SocketGuildUser guildUser)
-        {
-            EmbedBuilder embedBuilder = new EmbedBuilder();
-            embedBuilder.WithTitle(manga.Title)
-                .WithDescription(manga.Synopsis)
-                .WithThumbnailUrl(manga.ImageURL)
-                .WithUrl("https://myanimelist.net/manga/" + manga.MalId + "/")
-                .WithColor(GetGuildUserRoleColor(guildUser).Result);
-
-            List<EmbedFieldBuilder> fields = new List<EmbedFieldBuilder>();
-            StringBuilder strBuilder = new StringBuilder();
-            if (manga.Publishing)
-            {
-                strBuilder.Append(manga.Published.From.Value.ToString("dd/MM/yyyy"))
-                    .Append(" - ")
-                    .Append("Still Publishing.");
-
-                fields.Add(new EmbedFieldBuilder { Name = "Status", Value = "Publishing", IsInline = true });
-                fields.Add(new EmbedFieldBuilder { Name = "Type", Value = manga.Type, IsInline = true });
-                fields.Add(new EmbedFieldBuilder { Name = "Published", Value = strBuilder.ToString(), IsInline = true });
-            }
-            else
-            {
-                if (manga.Type.ToLower() == "novel")
-                {
-                    strBuilder.Append(manga.Published.From.Value.ToString("dd/MM/yyyy"));
-
-                    fields.Add(new EmbedFieldBuilder { Name = "Status", Value = "Published", IsInline = true });
-                    fields.Add(new EmbedFieldBuilder { Name = "Type", Value = manga.Type, IsInline = true });
-                    fields.Add(new EmbedFieldBuilder { Name = "Published", Value = strBuilder.ToString(), IsInline = true });
-                }
-                else
-                {
-                    strBuilder.Append(manga.Published.From.Value.ToString("dd/MM/yyyy"))
-                            .Append(" - ")
-                            .Append(manga.Published.To.Value.ToString("dd/MM/yyyy"));
-
-                    fields.Add(new EmbedFieldBuilder { Name = "Status", Value = "Finished", IsInline = true });
-                    fields.Add(new EmbedFieldBuilder { Name = "Type", Value = manga.Type, IsInline = true });
-                    fields.Add(new EmbedFieldBuilder { Name = "Published", Value = strBuilder.ToString(), IsInline = true }); 
-                }
-            }
-
-            if (manga.Rank != null)
-                fields.Add(new EmbedFieldBuilder { Name = "Rank", Value = manga.Rank, IsInline = true });
-            else
-                fields.Add(new EmbedFieldBuilder { Name = "Rank", Value = "N/A", IsInline = true });
-
-            if (manga.Score != null)
-                fields.Add(new EmbedFieldBuilder { Name = "Score", Value = manga.Score, IsInline = true });
-            else
-                fields.Add(new EmbedFieldBuilder { Name = "Score", Value = "N/A", IsInline = true });
-
-            if (manga.ScoredBy != null)
-                fields.Add(new EmbedFieldBuilder { Name = "Scored by", Value = manga.ScoredBy, IsInline = true });
-            else
-                fields.Add(new EmbedFieldBuilder { Name = "Scored by", Value = "N/A", IsInline = true });
-
-            embedBuilder.WithFields(fields);
-            return embedBuilder.Build();
-        }
-
-        public Embed CreateMangaEmbed(Manga manga, SocketUser user)
-        {
-            return CreateMangaEmbed(manga, user as SocketGuildUser);
-        }
-
-        public Embed CreateMangaEmbed(Manga manga, IGuildUser guildUser)
-        {
-            return CreateMangaEmbed(manga, guildUser as SocketGuildUser);
         }
     }
 }

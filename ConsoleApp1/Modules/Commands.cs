@@ -14,6 +14,7 @@ namespace koichibot.Modules
     {
         [Command("writeperm")]
         [Summary("readperm")]
+        [RequireOwner]
         public async Task WritePermAsync(IGuildUser guildUser, string perm, bool allow)
         {
             try
@@ -31,6 +32,7 @@ namespace koichibot.Modules
 
         [Command("readperm")]
         [Summary("readperm")]
+        [RequireOwner]
         public async Task ReadPermAsync(IGuildUser guildUser, string perm)
         {
             try

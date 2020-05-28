@@ -140,9 +140,10 @@ namespace koichibot
             }
         }
 
-        private async Task Client_Log(LogMessage Message)
+        private Task Client_Log(LogMessage Message)
         {
             Log.Information($"[{Message.Source}] {Message.Message}");
+            return Task.CompletedTask;
         }
 
         private async Task Client_Ready()

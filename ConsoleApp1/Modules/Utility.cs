@@ -43,7 +43,7 @@ namespace koichibot.Modules
                             builder.WithTitle($"{ username.Username }#{ username.Discriminator }'s Avatar")
                                 .WithDescription($"[Direct Link]({avatarUrl})")
                                 .WithImageUrl(avatarUrl)
-                                .WithColor(await methods.GetGuildUserRoleColor(Context.User as SocketGuildUser));
+                                .WithColor(Context.User.GetGuildUserRoleColor());
 
                             await ReplyAsync("", false, builder.Build());
                             return;
@@ -62,7 +62,7 @@ namespace koichibot.Modules
                     builder.WithTitle($"{ Context.User.Username }#{ Context.User.Discriminator }'s Avatar")
                         .WithDescription($"[Direct Link]({avatarUrl})")
                         .WithImageUrl(avatarUrl)
-                        .WithColor(await methods.GetGuildUserRoleColor(Context.User as SocketGuildUser));
+                        .WithColor(Context.User.GetGuildUserRoleColor());
 
                     await ReplyAsync("", false, builder.Build());
                     return;
@@ -260,7 +260,7 @@ namespace koichibot.Modules
                     }
                     embedBuilder.WithTitle($"Roles [{Context.Guild.Roles.Count}]")
                         .WithDescription(rolesBuilder.ToString())
-                        .WithColor(await methods.GetGuildUserRoleColor(Context.User as SocketGuildUser));
+                        .WithColor(Context.User.GetGuildUserRoleColor());
 
                     await ReplyAsync("", false, embedBuilder.Build());
                 }
@@ -278,7 +278,7 @@ namespace koichibot.Modules
                     embedBuilder.AddField("Roles", "To see the prompt with list of roles, please run `b!server roles`", false);
 
                     embedBuilder.WithFooter("Created at: " + Context.Guild.CreatedAt.UtcDateTime.ToString())
-                        .WithColor(await methods.GetGuildUserRoleColor(Context.User as SocketGuildUser));
+                        .WithColor(Context.User.GetGuildUserRoleColor());
 
                     await ReplyAsync("", false, embedBuilder.Build());
                     return;
@@ -309,8 +309,8 @@ namespace koichibot.Modules
                     .AddField("Mention", user.Mention, true)
                     .AddField("Joined at", user.JoinedAt.Value.UtcDateTime, false)
                     .AddField("Created at", user.CreatedAt.UtcDateTime, false)
-                    .AddField($"Roles [{user.Roles.Count}]", await methods.GetGuildUserRoles(user), false)
-                    .WithColor(await methods.GetGuildUserRoleColor(user));
+                    .AddField($"Roles [{user.Roles.Count}]", user.GetGuildUserRoles(), false)
+                    .WithColor(user.GetGuildUserRoleColor());
 
                 await ReplyAsync("", false, embedBuilder.Build());
                 return;
