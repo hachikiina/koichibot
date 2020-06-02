@@ -84,7 +84,7 @@ namespace koichibot.Modules
                 embedBuilder.AddField("Rating", response.ThumbsUp + " :thumbsup: / " + response.ThumbsDown + " :thumbsdown:", true)
                     .AddField("Author", response.Author, true)
                     .WithFooter("Powered by urbandictionary.com")
-                    .WithColor(await methods.GetGuildUserRoleColor(Context.User as SocketGuildUser));
+                    .WithColor(Context.User.GetGuildUserRoleColor());
 
                 await ReplyAsync("", false, embedBuilder.Build());
                 return;
@@ -109,7 +109,7 @@ namespace koichibot.Modules
             Methods methods = new Methods();
             EmbedBuilder embedBuilder = new EmbedBuilder();
             embedBuilder.WithTitle("The result is...")
-                .WithColor(await methods.GetGuildUserRoleColor(Context.User as SocketGuildUser))
+                .WithColor(Context.User.GetGuildUserRoleColor())
                 .WithFooter(Context.User.Username + "#" + Context.User.DiscriminatorValue, Context.User.GetAvatarUrl());
             Random random = new Random();
             int result = random.Next(0, 100);
@@ -143,7 +143,7 @@ namespace koichibot.Modules
 
                     EmbedBuilder embedBuilder = new EmbedBuilder();
                     embedBuilder.WithTitle("Your random number is: " + rndNum)
-                        .WithColor(await methods.GetGuildUserRoleColor(Context.Message.Author as SocketGuildUser))
+                        .WithColor(Context.Message.Author.GetGuildUserRoleColor())
                         .WithImageUrl("attachment://" + Context.Message.Id.ToString() + ".png");
 
                     await Context.Channel.SendFileAsync(methods.DrawRegularPolygonSK(6, 500f, Context, rndNum), embed: embedBuilder.Build());
@@ -167,7 +167,7 @@ namespace koichibot.Modules
 
                             EmbedBuilder embedBuilder = new EmbedBuilder();
                             embedBuilder.WithTitle("Your random number is: " + rndNum)
-                                .WithColor(await methods.GetGuildUserRoleColor(Context.Message.Author as SocketGuildUser))
+                                .WithColor(Context.Message.Author.GetGuildUserRoleColor())
                                 .WithImageUrl("attachment://" + Context.Message.Id.ToString() + ".png");
 
                             await Context.Channel.SendFileAsync(methods.DrawRegularPolygonSK(maxVal, 500f, Context, rndNum), embed: embedBuilder.Build());

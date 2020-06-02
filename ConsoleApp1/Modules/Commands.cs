@@ -45,5 +45,13 @@ namespace koichibot.Modules
                 return;
             }
         }
+
+        [Command("throw")]
+        [Summary("throw")]
+        [RequireOwner]
+        public async Task ThrowAsync()
+        {
+            throw new NotImplementedException("testing testing 123");
+        }
     }
 }

@@ -27,7 +27,6 @@ namespace koichibot.Modules
         public async Task AvatarAsync([Optional] IGuildUser username)
         {
             // still doesn't get to method body if the given arg isn't a user.
-            Methods methods = new Methods();
             try
             {
                 if (username != null)

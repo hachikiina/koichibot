@@ -56,6 +56,8 @@ namespace koichibot
                 CaseSensitiveCommands = false,
                 DefaultRunMode = RunMode.Async,
                 LogLevel = LogSeverity.Debug,
+                IgnoreExtraArgs  = true,
+                
             });
 
             //Interactive = new InteractiveService(Client);
@@ -66,8 +68,10 @@ namespace koichibot
                 .AddSingleton<InteractiveService>()
                 .BuildServiceProvider();
 
-            Client.MessageReceived += HandleCommandAsync;
+
             await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), Services);
+            Commands.CommandExecuted += OnCommandExecutedAsync;
+            Client.MessageReceived += HandleCommandAsync;
 
             Client.Ready += Client_Ready;
             Client.Log += Client_Log;
@@ -121,6 +125,14 @@ namespace koichibot
             }
 
             await Task.Delay(-1);
+        }
+
+        private async Task OnCommandExecutedAsync(Optional<CommandInfo> command, ICommandContext context, IResult result)
+        {
+            if (!string.IsNullOrEmpty(result?.ErrorReason))
+            {
+                await context.Channel.SendMessageAsync(result.ErrorReason);
+            }
         }
 
         private async Task HandleCommandAsync(SocketMessage arg)
