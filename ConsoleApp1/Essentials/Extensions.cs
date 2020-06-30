@@ -98,6 +98,15 @@ namespace koichibot.Essentials
             }
         }
 
+        /// <summary>
+        /// Reads the permission for the user.
+        /// </summary>
+        /// <param name="guildUser"></param>
+        /// <param name="permission"></param>
+        /// <exception cref="DirectoryNotFoundException">Thrown when permissions directory wasn't found.</exception>
+        /// <exception cref="FileNotFoundException">Thrown when permissions JSON wasn't found.</exception>
+        /// <exception cref="KeyNotFoundException">Thrown when permission or the user wasn't found in the JSON file.</exception>
+        /// <returns>If the user is allowed or not.</returns>
         public static bool ReadPermission(this IGuildUser guildUser, string permission)
         {
             string jsonDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data", "json", "permissions");

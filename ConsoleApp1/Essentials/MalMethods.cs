@@ -191,5 +191,91 @@ namespace koichibot.Essentials
         {
             return CreateMangaEmbed(manga, guildUser as SocketGuildUser);
         }
+
+        public async Task<AnimeSearchResult> GetAnimesFromSearchAsync(string animeName)
+        {
+            IJikan jikan = new Jikan(true);
+            return await jikan.SearchAnime(animeName);
+        }
+
+        public async Task<MangaSearchResult> GetMangasFromSearchAsync(string mangaName)
+        {
+            IJikan jikan = new Jikan(true);
+            return await jikan.SearchManga(mangaName);
+        }
+
+        public async Task<string> GenerateAnimeListAsync(string animeName)
+        {
+            StringBuilder strBuilder = new StringBuilder();
+            var animeSearch = await GetAnimesFromSearchAsync(animeName);
+
+            Dictionary<int, AnimeSearchEntry> searchResults = new Dictionary<int, AnimeSearchEntry>();
+            int i = 0;
+            strBuilder.Append($"[Results for {Format.Sanitize(animeName)}]")
+                .Append(Environment.NewLine);
+            foreach (var anime in animeSearch.Results)
+            {
+                if (i == 10) break;
+                strBuilder.Append((i + 1) + " - " + anime.Title)
+                    .Append(Environment.NewLine);
+                searchResults.Add(i + 1, anime);
+                i++;
+            }
+
+            return strBuilder.ToString();
+        }
+
+        public async Task<Dictionary<int, AnimeSearchEntry>> GetAnimeListAsync(string animeName)
+        {
+            var animeSearch = await GetAnimesFromSearchAsync(animeName);
+
+            Dictionary<int, AnimeSearchEntry> searchResults = new Dictionary<int, AnimeSearchEntry>();
+            int i = 0;
+            foreach (var anime in animeSearch.Results)
+            {
+                if (i == 10) break;
+                searchResults.Add(i + 1, anime);
+                i++;
+            }
+
+            return searchResults;
+        }
+
+        public async Task<string> GenerateMangaListAsync(string mangaName)
+        {
+            StringBuilder strBuilder = new StringBuilder();
+            var mangaSearch = await GetMangasFromSearchAsync(mangaName);
+
+            Dictionary<int, MangaSearchEntry> searchResults = new Dictionary<int, MangaSearchEntry>();
+            int i = 0;
+            strBuilder.Append($"[Results for {Format.Sanitize(mangaName)}]")
+                .Append(Environment.NewLine);
+            foreach (var manga in mangaSearch.Results)
+            {
+                if (i == 10) break;
+                strBuilder.Append((i + 1) + " - " + manga.Title)
+                    .Append(Environment.NewLine);
+                searchResults.Add(i + 1, manga);
+                i++;
+            }
+
+            return strBuilder.ToString();
+        }
+
+        public async Task<Dictionary<int, MangaSearchEntry>> GetMangaListAsync(string mangaName)
+        {
+            var mangaSearch = await GetMangasFromSearchAsync(mangaName);
+
+            Dictionary<int, MangaSearchEntry> searchResults = new Dictionary<int, MangaSearchEntry>();
+            int i = 0;
+            foreach (var manga in mangaSearch.Results)
+            {
+                if (i == 10) break;
+                searchResults.Add(i + 1, manga);
+                i++;
+            }
+
+            return searchResults;
+        }
     }
 }

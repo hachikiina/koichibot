@@ -27,31 +27,18 @@ namespace koichibot.Modules
 
             try
             {
+                MalMethods malMethods = new MalMethods();
                 var prompt = await ReplyAsync($"`{Format.Sanitize(animeName.ParseText())}` için sonuçlar alınıyor...");
-                StringBuilder strBuilder = new StringBuilder();
                 IJikan jikan = new Jikan(true);
 
-                AnimeSearchResult animeSearch = await jikan.SearchAnime(animeName.ParseText());
-                Dictionary<int, AnimeSearchEntry> searchResults = new Dictionary<int, AnimeSearchEntry>();
-                int i = 0;
-                strBuilder.Append($"[Results for {Format.Sanitize(animeName.ParseText())}]")
-                    .Append(Environment.NewLine);
-                foreach (var anime in animeSearch.Results)
-                {
-                    if (i == 10)
-                    {
-                        strBuilder.Append(Environment.NewLine)
-                            .Append("Çıkan sonuçların solundaki numarayı yazman yeterli. Örn -> \"3\"");
-                        break;
-                    }
-                    strBuilder.Append((i + 1) + " - " + anime.Title)
-                        .Append(Environment.NewLine);
-                    searchResults.Add(i + 1, anime);
-                    i++;
-                }
+                string animeList = await malMethods.GenerateAnimeListAsync(animeName.ParseText())
+                    + Environment.NewLine + "Çıkan sonuçların solundaki numarayı yazman yeterli. Örn -> \"3\""
+                    +Environment.NewLine + "İptal etmek için de \"c\" yazman yeterli.";
 
-                await prompt.ModifyAsync(msg => msg.Content = Format.Code(strBuilder.ToString(), "css"));
+                await prompt.ModifyAsync(msg => msg.Content = Format.Code(animeList, "css"));
 
+                // TODO this whole timespan thing doesn't work, gotta fix it
+                // well it does work but i need something better lol
                 var timespan = TimeSpan.FromSeconds(10);
                 while (timespan > TimeSpan.Zero)
                 {
@@ -60,14 +47,15 @@ namespace koichibot.Modules
                     var response = await NextMessageAsync(timeout: TimeSpan.FromMilliseconds(200));
                     if (response != null)
                     {
+                        // this is all finnicky
                         if (int.TryParse(response.Content, out int intAnime) && intAnime <= 10 && intAnime > 0)
                         {
-                            var anime = jikan.GetAnime(searchResults.GetValueOrDefault(intAnime).MalId).Result;
-                            MalMethods mal = new MalMethods();
+                            var animes = await malMethods.GetAnimeListAsync(animeName.ParseText());
+                            var anime = await jikan.GetAnime(animes.GetValueOrDefault(intAnime).MalId);
                             await prompt.ModifyAsync(msg =>
                             { 
                                 msg.Content = "";
-                                msg.Embed = mal.CreateAnimeEmbed(anime, Context.User);
+                                msg.Embed = malMethods.CreateAnimeEmbed(anime, Context.User);
                             });
                             await response.DeleteAsync();
                             return;
@@ -101,29 +89,14 @@ namespace koichibot.Modules
             try
             {
                 var prompt = await ReplyAsync($"`{Format.Sanitize(mangaName.ParseText())}` için sonuçlar alınıyor...");
-                StringBuilder strBuilder = new StringBuilder();
                 IJikan jikan = new Jikan(true);
+                MalMethods malMethods = new MalMethods();
 
-                var mangaSearch = jikan.SearchManga(mangaName.ParseText()).Result;
-                Dictionary<int, MangaSearchEntry> searchResults = new Dictionary<int, MangaSearchEntry>();
-                int i = 0;
-                strBuilder.Append($"[Results for {Format.Sanitize(mangaName.ParseText())}]")
-                    .Append(Environment.NewLine);
-                foreach (var manga in mangaSearch.Results)
-                {
-                    if (i == 10)
-                    {
-                        strBuilder.Append(Environment.NewLine)
-                            .Append("Çıkan sonuçların solundaki numarayı yazman yeterli. Örn -> \"3\"");
-                        break;
-                    }
-                    strBuilder.Append((i + 1) + " - " + manga.Title)
-                        .Append(Environment.NewLine);
-                    searchResults.Add(i + 1, manga);
-                    i++;
-                }
+                string mangaList = await malMethods.GenerateMangaListAsync(mangaName.ParseText())
+                    + Environment.NewLine + "Çıkan sonuçların solundaki numarayı yazman yeterli. Örn -> \"3\""
+                    + Environment.NewLine + "İptal etmek için de \"c\" yazman yeterli.";
 
-                await prompt.ModifyAsync(msg => msg.Content = Format.Code(strBuilder.ToString(), "css"));
+                await prompt.ModifyAsync(msg => msg.Content = Format.Code(mangaList, "css"));
 
                 var timespan = TimeSpan.FromSeconds(10);
                 while (timespan > TimeSpan.Zero)
@@ -136,7 +109,8 @@ namespace koichibot.Modules
                         if (int.TryParse(response.Content, out int intManga) && intManga <= 10 && intManga > 0)
                         {
                             // embed builder to show it bae.
-                            var manga = jikan.GetManga(searchResults.GetValueOrDefault(intManga).MalId).Result;
+                            var mangas = await malMethods.GetMangaListAsync(mangaName.ParseText());
+                            var manga = jikan.GetManga(mangas.GetValueOrDefault(intManga).MalId).Result;
                             MalMethods mal = new MalMethods();
                             await prompt.ModifyAsync(msg =>
                             {

@@ -217,5 +217,23 @@ namespace koichibot.Essentials
                 return;
             }
         }
+
+        public bool ChannelExists(IReadOnlyCollection<SocketTextChannel> textChannels, string channelName)
+        {
+            string name;
+            if (channelName.Contains(' '))
+                name = channelName.Replace(' ', '_');
+            else
+                name = channelName;
+
+            foreach (var channel in textChannels)
+            {
+                if (channel.Name == name)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }
