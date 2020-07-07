@@ -39,6 +39,7 @@ namespace koichibot.Modules
 
                 // TODO this whole timespan thing doesn't work, gotta fix it
                 // well it does work but i need something better lol
+                // idea: actually get the datetime.now and return after its 10 seconds past ?? nice.
                 var timespan = TimeSpan.FromSeconds(10);
                 while (timespan > TimeSpan.Zero)
                 {

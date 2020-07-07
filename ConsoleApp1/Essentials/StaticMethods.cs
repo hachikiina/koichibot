@@ -31,6 +31,22 @@ namespace koichibot.Essentials
             Log.Error("----------------------------------------------");
             return;
         }
+
+        public static bool IsFileEmpty(string fileName)
+        {
+            FileInfo info = new FileInfo(fileName);
+
+            if (info.Length == 0)
+                return true;
+
+            if (info.Length < 6)
+            {
+                string content = File.ReadAllText(fileName);
+                return content.Length == 0;
+            }
+
+            return false;
+        }
     }
 
 }

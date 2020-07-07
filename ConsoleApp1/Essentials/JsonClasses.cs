@@ -81,4 +81,26 @@ namespace koichibot.Essentials
         [JsonProperty("userPermissionPairs")]
         public Dictionary<ulong, Dictionary<string, bool>> UserPermissionPairs { get; set; }
     }
+
+    public class StarboardMessages
+    {
+        [JsonProperty("messages")]
+        public List<StarboardMessage> Messages { get; set; }
+    }
+
+    public class StarboardMessage
+    {
+        [JsonProperty("message")]
+        public SocketMessage Message { get; set; }
+        [JsonProperty("starCount")]
+        public int StarCount { get; set; }
+    }
+
+    public class StarboardSettings
+    {
+        [JsonProperty("starThreshold")]
+        public int StarThreshold { get; set; }
+        [JsonProperty("starChannel")]
+        public SocketTextChannel StarChannel { get; set; }
+    }
 }

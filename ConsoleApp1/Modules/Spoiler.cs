@@ -21,6 +21,7 @@ namespace koichibot.Modules
         //}
 
         [Group("create")]
+        [RequireOwner(ErrorMessage = "you are not the owner lol")]
         public class Create : ModuleBase<SocketCommandContext>
         {
             // fix this using params lol

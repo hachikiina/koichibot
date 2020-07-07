@@ -10,6 +10,7 @@ using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using koichibot.Base;
 
 namespace koichibot
 {
@@ -66,10 +67,12 @@ namespace koichibot
                 .AddSingleton(Client)
                 .AddSingleton(Commands)
                 .AddSingleton<InteractiveService>()
+                .AddSingleton<EventHandlers>() // do i need this? dunno
                 .BuildServiceProvider();
 
+            await Services.GetRequiredService<EventHandlers>().InstallEventsAsync();
 
-            await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), Services);
+            //await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), Services); // men
             Commands.CommandExecuted += OnCommandExecutedAsync;
             Client.MessageReceived += HandleCommandAsync;
 
